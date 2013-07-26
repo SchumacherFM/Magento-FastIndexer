@@ -97,13 +97,17 @@
             </after_reindex_process_catalog_category_flat>
 
 
-
         </events>
 
     </global>
 
-    <crontab>
-    </crontab>
+    <default>
+        <system>
+            <fastindexer>
+                <enable>0</enable>
+            </fastindexer>
+        </system>
+    </default>
 
 
 </config>

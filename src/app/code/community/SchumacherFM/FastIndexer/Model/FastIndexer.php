@@ -25,14 +25,9 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
     protected $_connection = null;
     protected $_currentTableName = '';
 
-    protected function _runsOnCommandLine()
-    {
-        return isset($_SERVER['argv']) && (int)$_SERVER['argc'] > 0;
-    }
-
     public function changeTableName(Varien_Event_Observer $event)
     {
-        if (!$this->_runsOnCommandLine()) { // run only in shell
+        if (!$this->_runsOnCommandLine() || !Mage::helper('findex')->isEnabled()) { // run only in shell
             return TRUE;
         }
 
@@ -49,6 +44,11 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
 
         }
         return TRUE;
+    }
+
+    protected function _runsOnCommandLine()
+    {
+        return isset($_SERVER['argv']) && (int)$_SERVER['argc'] > 0;
     }
 
     /**
