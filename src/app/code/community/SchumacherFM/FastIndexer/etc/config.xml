@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <SchumacherFM_FastIndexer>
+            <version>1.0.0</version>
+        </SchumacherFM_FastIndexer>
+    </modules>
+
+    <global>
+        <blocks>
+            <findex>
+                <class>SchumacherFM_FastIndexer_Block</class>
+            </findex>
+        </blocks>
+
+        <models>
+            <findex>
+                <class>SchumacherFM_FastIndexer_Model</class>
+            </findex>
+        </models>
+
+        <helpers>
+            <findex>
+                <class>SchumacherFM_FastIndexer_Helper</class>
+            </findex>
+        </helpers>
+
+        <events>
+            <resource_get_tablename>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/fastIndexer</class>
+                        <method>changeTableName</method>
+                    </unic_fastindexer>
+                </observers>
+            </resource_get_tablename>
+        </events>
+
+    </global>
+
+    <crontab>
+    </crontab>
+
+
+
+</config>

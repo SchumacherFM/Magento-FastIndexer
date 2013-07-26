@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <SchumacherFM_FastIndexer>
+            <active>true</active>
+            <codePool>local</codePool>
+        </SchumacherFM_FastIndexer>
+    </modules>
+</config>
