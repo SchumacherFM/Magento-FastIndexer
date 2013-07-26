@@ -8,34 +8,100 @@
  */
 class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
 {
-    protected $_createdTables = array();
+    const FINDEX_TBL_PREFIX = 'afstidex_';
+
+    /**
+     * @var array
+     */
+    protected $_createdTables = NULL;
+
+    /**
+     * @var Mage_Core_Model_Resource
+     */
+    protected $_resource = null;
+    /**
+     * @var Varien_Db_Adapter_Pdo_Mysql
+     */
+    protected $_connection = null;
+    protected $_currentTableName = '';
+
+    protected function _runsOnCommandLine()
+    {
+        return TRUE;
+    }
 
     public function changeTableName(Varien_Event_Observer $event)
     {
+//        if (!$this->_runsOnCommandLine()) { // run only in shell
+//            return TRUE;
+//        }
 
-        /** @var Mage_Core_Model_Resource $resource */
-        $resource    = $event->getEvent()->getResource();
-        $tableName   = $event->getEvent()->getTableName();
-        $modelEntity = $event->getEvent()->getModelEntity();
+        /** @var Mage_Core_Model_Resource _resource */
+        $this->_resource = $event->getEvent()->getResource();
+        /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
+        $this->_connection       = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
+        $this->_currentTableName = $event->getEvent()->getTableName();
+        if ($this->_isIndexTable()) {
 
-        if (strpos($tableName, 'index') > 2 || strpos($tableName, 'idx') > 2) {
+            $newTableName = $this->_getNewTableName();
+            $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
 
-            $tn = $this->_getTableName($tableName);
-            $resource->setMappedTableName($tableName, $tn);
-            if (!isset($this->_createdTables[$tn])) {
-                $resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE)
-                    ->query('CREATE TABLE `' . $tn . '` like `' . $tableName . '`'
-                    );
+            $this->_createTable($newTableName);
 
-                $this->_createdTables[$tn] = $tableName;
-            }
         }
-
+        return TRUE;
     }
 
-    protected function _getTableName($tableName)
+    /**
+     * @param string $newTableName
+     *
+     * @return bool
+     */
+    protected function _createTable($newTableName)
     {
-        return 'aFastIndex_' . $tableName;
+        if ($this->_existsNewTableInDb($newTableName)) {
+            $this->_connection->query('TRUNCATE `' . $newTableName);
+        } else {
+            $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
+            $this->_createdTables[$newTableName] = $this->_currentTableName;
+        }
+        return TRUE;
+    }
+
+    /**
+     * @param string $newTableName
+     *
+     * @return bool
+     */
+    protected function _existsNewTableInDb($newTableName)
+    {
+        if ($this->_createdTables === null) {
+            $this->_createdTables = array();
+            /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
+            $stmt   = $this->_connection->query('SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
+            $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($tables as $table) {
+                $tn                        = reset($table);
+                $this->_createdTables[$tn] = str_replace(self::FINDEX_TBL_PREFIX, '', $tn);
+            }
+        }
+        return isset($this->_createdTables[$newTableName]);
+    }
+
+    /**
+     * @return string
+     */
+    protected function _getNewTableName()
+    {
+        return self::FINDEX_TBL_PREFIX . $this->_currentTableName;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function _isIndexTable()
+    {
+        return strpos($this->_currentTableName, '_index') > 2 || strpos($this->_currentTableName, '_idx') > 2 || strpos($this->_currentTableName, '_flat_') > 2;
     }
 
     public function getTables()
@@ -43,8 +109,4 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
         return $this->_createdTables;
     }
 
-    public function renameTablesAfterIndexing(Varien_Event_Observer $event)
-    {
-
-    }
 }

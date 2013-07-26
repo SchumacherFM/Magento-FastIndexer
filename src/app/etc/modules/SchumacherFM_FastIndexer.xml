@@ -3,7 +3,7 @@
     <modules>
         <SchumacherFM_FastIndexer>
             <active>true</active>
-            <codePool>local</codePool>
+            <codePool>community</codePool>
         </SchumacherFM_FastIndexer>
     </modules>
 </config>

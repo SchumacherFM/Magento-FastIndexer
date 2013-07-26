@@ -35,13 +35,44 @@
                     </unic_fastindexer>
                 </observers>
             </resource_get_tablename>
+
+            <after_reindex_process_cataloginventory_stock>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/tableHandler</class>
+                        <method>renameTables</method>
+                    </unic_fastindexer>
+                </observers>
+            </after_reindex_process_cataloginventory_stock>
+
+            <after_reindex_process_catalog_product_price>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/tableHandler</class>
+                        <method>renameTables</method>
+                    </unic_fastindexer>
+                </observers>
+            </after_reindex_process_catalog_product_price>
+
+            <after_reindex_process_catalog_category_product>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/tableHandler</class>
+                        <method>renameTables</method>
+                    </unic_fastindexer>
+                </observers>
+            </after_reindex_process_catalog_category_product>
+
+
         </events>
 
     </global>
 
     <crontab>
     </crontab>
-
 
 
 </config>

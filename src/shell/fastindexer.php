@@ -3,6 +3,8 @@
 require_once 'abstract.php';
 require_once 'indexer.php';
 
+define('FASTINDEXER_SHELL',true);
+
 /**
  * @author      Cys
  */
