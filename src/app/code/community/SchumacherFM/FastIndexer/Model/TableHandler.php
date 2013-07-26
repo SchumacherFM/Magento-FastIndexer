@@ -3,17 +3,21 @@
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
- * @copyright Copyright (c) 2012 SchumacherFM AG (http://www.unic.com)
+ * @copyright Copyright (c) 2012 SchumacherFM AG (http://www.schumacher.fm)
  * @author    @SchumacherFM
  */
 class SchumacherFM_FastIndexer_Model_TableHandler
 {
     /**
+     * @todo bug check for depend indexer PARENT ...
+     */
+
+    /**
      * @var Varien_Db_Adapter_Pdo_Mysql
      */
     protected $_connection = null;
 
-    protected $_doDropTable = TRUE;
+    protected $_doDropTable = false;
 
     /**
      * @return Varien_Db_Adapter_Pdo_Mysql
@@ -26,8 +30,14 @@ class SchumacherFM_FastIndexer_Model_TableHandler
         return $this->_connection;
     }
 
+    /**
+     * @param Varien_Event_Observer $event
+     */
     public function renameTables(Varien_Event_Observer $event)
     {
+//        Zend_Debug::dump($event->getEvent()->getName());
+//        exit;
+
         $tablesToRename = Mage::getSingleton('findex/fastIndexer')->getTables();
 
         foreach ($tablesToRename as $newTable => $existingTable) {

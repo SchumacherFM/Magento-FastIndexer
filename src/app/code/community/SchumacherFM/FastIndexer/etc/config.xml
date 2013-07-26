@@ -66,6 +66,37 @@
                 </observers>
             </after_reindex_process_catalog_category_product>
 
+            <after_reindex_process_catalog_product_attribute>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/tableHandler</class>
+                        <method>renameTables</method>
+                    </unic_fastindexer>
+                </observers>
+            </after_reindex_process_catalog_product_attribute>
+
+            <after_reindex_process_catalog_product_flat>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/tableHandler</class>
+                        <method>renameTables</method>
+                    </unic_fastindexer>
+                </observers>
+            </after_reindex_process_catalog_product_flat>
+
+            <after_reindex_process_catalog_category_flat>
+                <observers>
+                    <unic_fastindexer>
+                        <type>singleton</type>
+                        <class>findex/tableHandler</class>
+                        <method>renameTables</method>
+                    </unic_fastindexer>
+                </observers>
+            </after_reindex_process_catalog_category_flat>
+
+
 
         </events>
 

@@ -3,7 +3,7 @@
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
- * @copyright Copyright (c) 2012 SchumacherFM AG (http://www.unic.com)
+ * @copyright Copyright (c) 2012 SchumacherFM AG (http://www.schumacher.fm)
  * @author    @SchumacherFM
  */
 class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
@@ -27,25 +27,24 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
 
     protected function _runsOnCommandLine()
     {
-        return TRUE;
+        return isset($_SERVER['argv']) && (int)$_SERVER['argc'] > 0;
     }
 
     public function changeTableName(Varien_Event_Observer $event)
     {
-//        if (!$this->_runsOnCommandLine()) { // run only in shell
-//            return TRUE;
-//        }
+        if (!$this->_runsOnCommandLine()) { // run only in shell
+            return TRUE;
+        }
 
         /** @var Mage_Core_Model_Resource _resource */
         $this->_resource = $event->getEvent()->getResource();
         /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
         $this->_connection       = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
         $this->_currentTableName = $event->getEvent()->getTableName();
-        if ($this->_isIndexTable()) {
 
+        if ($this->_isIndexTable()) {
             $newTableName = $this->_getNewTableName();
             $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
-
             $this->_createTable($newTableName);
 
         }
@@ -101,7 +100,9 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      */
     protected function _isIndexTable()
     {
-        return strpos($this->_currentTableName, '_index') > 2 || strpos($this->_currentTableName, '_idx') > 2 || strpos($this->_currentTableName, '_flat_') > 2;
+        return strpos($this->_currentTableName, '_index') > 2 ||
+        strpos($this->_currentTableName, '_idx') > 2 ||
+        strpos($this->_currentTableName, '_flat') > 2; // @todo bug does not work with flat structure
     }
 
     public function getTables()
