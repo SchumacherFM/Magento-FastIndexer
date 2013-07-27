@@ -55,6 +55,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
                     echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
                     flush();
                 }
+                $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable); // @todo bug, does not copy
                 $this->_dropTable($oldExistingTable);
 
                 // reset table names
@@ -64,6 +65,46 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             }
         }
         Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->unsetTables();
+    }
+
+    /**
+     * @param $currentTableName
+     * @param $oldExistingTable
+     *
+     * @return bool 248265
+     */
+    protected function _copyCustomUrlRewrites($currentTableName, $oldExistingTable)
+    {
+        if ($this->_getResource()->getTableName('core/url_rewrite') !== $currentTableName) {
+            return FALSE;
+        }
+        $columns = $this->_getColumnsFromTable($currentTableName);
+
+        // maybe use insertFromSelect() ...
+        $this->_getConnection()->query('INSERT INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
+            SELECT ' . implode(',', $columns) . ' FROM `' . $oldExistingTable . '` WHERE `is_system`=0');
+        return TRUE;
+    }
+
+    /**
+     * returns all non PRI columns
+     *
+     * @param $tableName
+     *
+     * @return array
+     */
+    protected function _getColumnsFromTable($tableName)
+    {
+        /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
+        $stmt          = $this->_getConnection()->query('SHOW COLUMNS FROM `' . $tableName . '`');
+        $columnsResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $columns       = array();
+        foreach ($columnsResult as $col) {
+            if ($col['Key'] !== 'PRI') {
+                $columns[] = '`' . $col['Field'] . '`';
+            }
+        }
+        return $columns;
     }
 
     /**
