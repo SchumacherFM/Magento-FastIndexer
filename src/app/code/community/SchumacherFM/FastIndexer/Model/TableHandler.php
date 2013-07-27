@@ -8,9 +8,6 @@
  */
 class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
 {
-    /**
-     * @todo bug check for depend indexer PARENT ...
-     */
 
     const EVENT_PREFIX = 'after_reindex_process_';
 
@@ -19,9 +16,11 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
      */
     protected $_connection = null;
 
-    protected $_doDropTable = false;
+    protected $_doDropTable = TRUE;
 
     protected $_processName = '';
+
+    protected $_enableEcho = TRUE;
 
     /**
      * @return Varien_Db_Adapter_Pdo_Mysql
@@ -61,10 +60,12 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
 
             $oldExistingTable = $this->_renameTable($currentTableName, $newTable);
 
-            echo $this->_formatLine($oldExistingTable, $this->_getTableCount($currentTableName));
-            echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
+            if ($this->_enableEcho) {
+                echo $this->_formatLine($oldExistingTable, $this->_getTableCount($currentTableName));
+                echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
+                flush();
+            }
             $this->_dropTable($oldExistingTable);
-            flush();
 
             // reset table names
             $this->_getResource()->setMappedTableName($currentTableName, $currentTableName);
@@ -140,33 +141,6 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
         if ($this->_doDropTable === TRUE) {
             $this->_getConnection()->dropTable($tableName);
         }
-    }
-
-    /**
-     * Retrieve depend indexer codes
-     *
-     * @return array
-     */
-    protected function _hasDependendIndexers()
-    {
-
-        Zend_Debug::dump($this->_processName);
-
-        $depends = array();
-        $path    = Mage_Index_Model_Process::XML_PATH_INDEXER_DATA; // . '/' . $this->_processName;
-        $node    = Mage::getConfig()->getNode($path);
-        if ($node) {
-            $data = $node->asArray();
-
-            Zend_Debug::dump($data);
-            exit;
-
-            if (isset($data['depends']) && is_array($data['depends'])) {
-                $depends = array_keys($data['depends']);
-            }
-        }
-
-        return $depends;
     }
 
     /**
