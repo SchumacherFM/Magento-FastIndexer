@@ -61,18 +61,21 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             if ($this->_isFlatTablePrefix($currentTableName)) {
                 continue;
             }
+            try {
+                $oldExistingTable = $this->_renameTable($currentTableName, $newTable);
 
-            $oldExistingTable = $this->_renameTable($currentTableName, $newTable);
+                if ($this->_enableEcho) {
+                    echo $this->_formatLine($oldExistingTable, $this->_getTableCount($currentTableName));
+                    echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
+                    flush();
+                }
+                $this->_dropTable($oldExistingTable);
 
-            if ($this->_enableEcho) {
-                echo $this->_formatLine($oldExistingTable, $this->_getTableCount($currentTableName));
-                echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
-                flush();
+                // reset table names
+                $this->_getResource()->setMappedTableName($currentTableName, $currentTableName);
+            } catch (Exception $e) {
+                Mage::logException($e);
             }
-            $this->_dropTable($oldExistingTable);
-
-            // reset table names
-            $this->_getResource()->setMappedTableName($currentTableName, $currentTableName);
         }
         Mage::getSingleton('findex/fastIndexer')->unsetTables();
     }
@@ -103,7 +106,8 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             $this->_sqlRenameTo($existingTable, $oldExistingTable),
             $this->_sqlRenameTo($newTable, $existingTable),
         );
-        $this->_getConnection()->query('RENAME TABLE ' . implode(',', $tables));
+        $sql    = 'RENAME TABLE ' . implode(',', $tables);
+        $this->_getConnection()->query($sql);
         return $oldExistingTable;
     }
 

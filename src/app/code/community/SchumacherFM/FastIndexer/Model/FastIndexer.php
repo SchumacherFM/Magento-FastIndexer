@@ -76,7 +76,7 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
             }
         }
         $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
-        $this->_createdTables[$newTableName] = $this->_currentTableName;
+        $this->_createdTables[$newTableName] = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_currentTableName);
         return TRUE;
     }
 
