@@ -66,7 +66,7 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
     {
         if ($this->_isIndexTable()) {
             if ($this->_existsNewTableInDb($newTableName)) {
-      //          $this->_connection->query('TRUNCATE `' . $newTableName);
+                //          $this->_connection->query('TRUNCATE `' . $newTableName);
             } else {
                 $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
             }
@@ -101,6 +101,9 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      */
     protected function _getNewTableName()
     {
+        if (strstr($this->_currentTableName, self::FINDEX_TBL_PREFIX) !== FALSE) {
+            return $this->_currentTableName;
+        }
         return self::FINDEX_TBL_PREFIX . $this->_currentTableName;
     }
 
@@ -121,8 +124,8 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
     protected function _isFlatTable()
     {
         return
-            strstr($this->_currentTableName, 'catalog_category_flat') !== FALSE ||
-            strstr($this->_currentTableName, 'catalog_product_flat') !== FALSE;
+            strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== FALSE ||
+            strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== FALSE;
     }
 
     public function getTables()

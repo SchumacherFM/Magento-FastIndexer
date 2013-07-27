@@ -143,13 +143,4 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
         }
     }
 
-    /**
-     * Get Indexer instance
-     *
-     * @return Mage_Index_Model_Indexer
-     */
-    protected function _getIndexer()
-    {
-        return Mage::getSingleton('index/indexer');
-    }
 }
