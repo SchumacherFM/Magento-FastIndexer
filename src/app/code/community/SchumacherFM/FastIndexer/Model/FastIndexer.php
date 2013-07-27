@@ -1,11 +1,11 @@
 <?php
-
 /**
- * @category  SchumacherFM
- * @package   SchumacherFM_FastIndexer
- * @copyright Copyright (c) 2012 SchumacherFM AG (http://www.schumacher.fm)
- * @author    @SchumacherFM
- */
+* @category  SchumacherFM
+* @package   SchumacherFM_FastIndexer
+* @copyright Copyright (c) http://www.schumacher.fm
+* @license   For non commercial use only
+* @author    Cyrill at Schumacher dot fm @SchumacherFM
+*/
 class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
 {
     const FINDEX_TBL_PREFIX = 'afstidex_';
@@ -36,7 +36,7 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      */
     public function changeTableName(Varien_Event_Observer $event)
     {
-        if (!$this->_runsOnCommandLine() || !Mage::helper('findex')->isEnabled()) { // run only in shell
+        if (!$this->_runsOnCommandLine() || !Mage::helper('schumacherfm_fastindexer')->isEnabled()) { // run only in shell
             return TRUE;
         }
 
@@ -68,13 +68,10 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      */
     protected function _createTable($newTableName)
     {
-        if ($this->_isIndexTable()) {
-            if ($this->_existsNewTableInDb($newTableName)) {
-                //          $this->_connection->query('TRUNCATE `' . $newTableName);
-            } else {
-                $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
-            }
+        if ($this->_isIndexTable() && !$this->_existsNewTableInDb($newTableName)) {
+            $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
         }
+
         $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
         $this->_createdTables[$newTableName] = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_currentTableName);
         return TRUE;
@@ -132,11 +129,19 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
             strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== FALSE;
     }
 
+    /**
+     * @return array|null
+     */
     public function getTables()
     {
         return $this->_createdTables;
     }
 
+    /**
+     * unsets to internal table cache to reread the table names again from the DB
+     *
+     * @return $this
+     */
     public function unsetTables()
     {
         $this->_createdTables = null;

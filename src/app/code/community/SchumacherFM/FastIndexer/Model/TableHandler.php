@@ -1,11 +1,11 @@
 <?php
-
 /**
- * @category  SchumacherFM
- * @package   SchumacherFM_FastIndexer
- * @copyright Copyright (c) 2012 SchumacherFM AG (http://www.schumacher.fm)
- * @author    @SchumacherFM
- */
+* @category  SchumacherFM
+* @package   SchumacherFM_FastIndexer
+* @copyright Copyright (c) http://www.schumacher.fm
+* @license   For non commercial use only
+* @author    Cyrill at Schumacher dot fm @SchumacherFM
+*/
 class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
 {
 
@@ -54,7 +54,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
     {
         $this->_setProcessName($event->getEvent()->getName());
 
-        $tablesToRename = Mage::getSingleton('findex/fastIndexer')->getTables();
+        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->getTables();
 
         foreach ($tablesToRename as $newTable => $currentTableName) {
 
@@ -77,9 +77,14 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
                 Mage::logException($e);
             }
         }
-        Mage::getSingleton('findex/fastIndexer')->unsetTables();
+        Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->unsetTables();
     }
 
+    /**
+     * @param string $currentTableName
+     *
+     * @return bool
+     */
     protected function _isFlatTablePrefix($currentTableName)
     {
         return

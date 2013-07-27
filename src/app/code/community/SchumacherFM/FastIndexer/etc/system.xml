@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <!--
-/**
+ /**
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   For non commercial use only
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 -->
 <config>

@@ -1,4 +1,13 @@
 <?xml version="1.0"?>
+<!--
+ /**
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   For non commercial use only
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
+ */
+-->
 <config>
     <modules>
         <SchumacherFM_FastIndexer>
@@ -8,21 +17,30 @@
 
     <global>
         <blocks>
-            <findex>
+            <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Block</class>
-            </findex>
+            </schumacherfm_fastindexer>
         </blocks>
 
         <models>
-            <findex>
+            <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Model</class>
-            </findex>
+            </schumacherfm_fastindexer>
         </models>
 
+        <resources>
+            <schumacherfm_fastindexer_setup>
+                <setup>
+                    <module>SchumacherFM_FastIndexer</module>
+                    <class>SchumacherFM_FastIndexer_Model_Resource_Setup</class>
+                </setup>
+            </schumacherfm_fastindexer_setup>
+        </resources>
+
         <helpers>
-            <findex>
+            <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Helper</class>
-            </findex>
+            </schumacherfm_fastindexer>
         </helpers>
 
         <events>
@@ -30,7 +48,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/fastIndexer</class>
+                        <class>schumacherfm_fastindexer/fastIndexer</class>
                         <method>changeTableName</method>
                     </unic_fastindexer>
                 </observers>
@@ -40,7 +58,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -49,7 +67,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -58,7 +76,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -67,7 +85,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -76,7 +94,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -85,7 +103,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -94,7 +112,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -103,7 +121,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -112,7 +130,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
@@ -121,7 +139,7 @@
                 <observers>
                     <unic_fastindexer>
                         <type>singleton</type>
-                        <class>findex/tableHandler</class>
+                        <class>schumacherfm_fastindexer/tableHandler</class>
                         <method>renameTables</method>
                     </unic_fastindexer>
                 </observers>
