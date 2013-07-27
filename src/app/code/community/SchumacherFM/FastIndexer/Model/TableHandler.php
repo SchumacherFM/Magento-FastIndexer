@@ -42,6 +42,10 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
     {
         $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->getTables();
 
+        if (empty($tablesToRename)) {
+            return FALSE;
+        }
+
         foreach ($tablesToRename as $newTable => $currentTableName) {
 
             if ($this->_isFlatTablePrefix($currentTableName)) {
@@ -75,7 +79,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
      */
     protected function _copyCustomUrlRewrites($currentTableName, $oldExistingTable)
     {
-        if ($this->_getResource()->getTableName('core/url_rewrite') !== $currentTableName) {
+        if (strstr($this->_getResource()->getTableName('core/url_rewrite'), $currentTableName) === FALSE) {
             return FALSE;
         }
         $columns = $this->_getColumnsFromTable($currentTableName);
