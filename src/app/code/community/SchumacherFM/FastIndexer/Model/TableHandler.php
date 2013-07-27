@@ -58,6 +58,10 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
 
         foreach ($tablesToRename as $newTable => $currentTableName) {
 
+            if ($this->_isFlatTablePrefix($currentTableName)) {
+                continue;
+            }
+
             $oldExistingTable = $this->_renameTable($currentTableName, $newTable);
 
             if ($this->_enableEcho) {
@@ -71,6 +75,13 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             $this->_getResource()->setMappedTableName($currentTableName, $currentTableName);
         }
         Mage::getSingleton('findex/fastIndexer')->unsetTables();
+    }
+
+    protected function _isFlatTablePrefix($currentTableName)
+    {
+        return
+            $currentTableName === SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT ||
+            $currentTableName === SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT;
     }
 
     /**

@@ -23,6 +23,10 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      * @var Varien_Db_Adapter_Pdo_Mysql
      */
     protected $_connection = null;
+
+    /**
+     * @var string
+     */
     protected $_currentTableName = '';
 
     /**
