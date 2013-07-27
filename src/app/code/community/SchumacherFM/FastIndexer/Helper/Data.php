@@ -11,7 +11,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Fast Indexer enabled
      */
-    const XML_PATH_FASTINDEXER_ENABLE = 'default/system/fastindexer/enable';
+    const XML_PATH_FASTINDEXER_ENABLE = 'system/fastindexer/enable';
 
     /**
      * @return bool

@@ -25,6 +25,11 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
     protected $_connection = null;
     protected $_currentTableName = '';
 
+    /**
+     * @param Varien_Event_Observer $event
+     *
+     * @return bool
+     */
     public function changeTableName(Varien_Event_Observer $event)
     {
         if (!$this->_runsOnCommandLine() || !Mage::helper('findex')->isEnabled()) { // run only in shell
@@ -36,14 +41,15 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
         /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
         $this->_connection       = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
         $this->_currentTableName = $event->getEvent()->getTableName();
-
-        if ($this->_isIndexTable()) {
-            $newTableName = $this->_getNewTableName();
-            $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
-            $this->_createTable($newTableName);
-
+        $tableSuffix             = $event->getEvent()->getTableSuffix();
+        if (!empty($tableSuffix)) {
+            $this->_currentTableName .= '_' . $tableSuffix;
         }
-        return TRUE;
+
+        if ($this->_isIndexTable() || $this->_isFlatTable()) {
+            $newTableName = $this->_getNewTableName();
+            $this->_createTable($newTableName);
+        }
     }
 
     protected function _runsOnCommandLine()
@@ -58,12 +64,15 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      */
     protected function _createTable($newTableName)
     {
-        if ($this->_existsNewTableInDb($newTableName)) {
-            $this->_connection->query('TRUNCATE `' . $newTableName);
-        } else {
-            $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
-            $this->_createdTables[$newTableName] = $this->_currentTableName;
+        if ($this->_isIndexTable()) {
+            if ($this->_existsNewTableInDb($newTableName)) {
+      //          $this->_connection->query('TRUNCATE `' . $newTableName);
+            } else {
+                $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
+            }
         }
+        $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
+        $this->_createdTables[$newTableName] = $this->_currentTableName;
         return TRUE;
     }
 
@@ -100,14 +109,31 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
      */
     protected function _isIndexTable()
     {
-        return strpos($this->_currentTableName, '_index') > 2 ||
-        strpos($this->_currentTableName, '_idx') > 2 ||
-        strpos($this->_currentTableName, '_flat') > 2; // @todo bug does not work with flat structure
+        return
+            strpos($this->_currentTableName, '_index') > 2 ||
+            strpos($this->_currentTableName, '_idx') > 2 ||
+            strstr($this->_currentTableName, 'core_url_rewrite') !== FALSE;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function _isFlatTable()
+    {
+        return
+            strstr($this->_currentTableName, 'catalog_category_flat') !== FALSE ||
+            strstr($this->_currentTableName, 'catalog_product_flat') !== FALSE;
     }
 
     public function getTables()
     {
         return $this->_createdTables;
+    }
+
+    public function unsetTables()
+    {
+        $this->_createdTables = null;
+        return $this;
     }
 
 }
