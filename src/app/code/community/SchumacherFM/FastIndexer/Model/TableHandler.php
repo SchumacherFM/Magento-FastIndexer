@@ -1,11 +1,11 @@
 <?php
 /**
-* @category  SchumacherFM
-* @package   SchumacherFM_FastIndexer
-* @copyright Copyright (c) http://www.schumacher.fm
-* @license   For non commercial use only
-* @author    Cyrill at Schumacher dot fm @SchumacherFM
-*/
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   For non commercial use only
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
+ */
 class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
 {
 
@@ -15,12 +15,6 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
      * @var Varien_Db_Adapter_Pdo_Mysql
      */
     protected $_connection = null;
-
-    protected $_doDropTable = TRUE;
-
-    protected $_processName = '';
-
-    protected $_enableEcho = TRUE;
 
     /**
      * @return Varien_Db_Adapter_Pdo_Mysql
@@ -41,19 +35,11 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
         return Mage::getSingleton('core/resource');
     }
 
-    protected function _setProcessName($name)
-    {
-        $name               = str_replace(self::EVENT_PREFIX, '', $name);
-        $this->_processName = $name;
-    }
-
     /**
      * @param Varien_Event_Observer $event
      */
     public function renameTables(Varien_Event_Observer $event)
     {
-        $this->_setProcessName($event->getEvent()->getName());
-
         $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->getTables();
 
         foreach ($tablesToRename as $newTable => $currentTableName) {
@@ -64,7 +50,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             try {
                 $oldExistingTable = $this->_renameTable($currentTableName, $newTable);
 
-                if ($this->_enableEcho) {
+                if (Mage::helper('schumacherfm_fastindexer')->isEcho() === TRUE) {
                     echo $this->_formatLine($oldExistingTable, $this->_getTableCount($currentTableName));
                     echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
                     flush();
@@ -103,7 +89,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
     protected function _renameTable($existingTable, $newTable)
     {
         $oldExistingTable = $existingTable;
-        $oldExistingTable .= $this->_doDropTable === TRUE
+        $oldExistingTable .= Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE
             ? '_old'
             : date('mdHi');
 
@@ -158,7 +144,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
      */
     protected function _dropTable($tableName)
     {
-        if ($this->_doDropTable === TRUE) {
+        if (Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE) {
             $this->_getConnection()->dropTable($tableName);
         }
     }
