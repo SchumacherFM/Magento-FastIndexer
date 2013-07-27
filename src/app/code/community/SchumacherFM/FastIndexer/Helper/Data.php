@@ -11,7 +11,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * Fast Indexer enabled
      */
-    const XML_PATH_FASTINDEXER_ENABLE = 'system/fastindexer/enable';
+    const XML_PATH_FASTINDEXER_ENABLE = 'schumacherfm/fastindexer/enable';
     const CATALOG_CATEGORY_FLAT       = 'catalog_category_flat';
     const CATALOG_PRODUCT_FLAT        = 'catalog_product_flat';
 

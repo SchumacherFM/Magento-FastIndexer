@@ -131,11 +131,11 @@
     </global>
 
     <default>
-        <system>
+        <schumacherfm>
             <fastindexer>
                 <enable>0</enable>
             </fastindexer>
-        </system>
+        </schumacherfm>
     </default>
 
 

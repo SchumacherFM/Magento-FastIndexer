@@ -5,7 +5,14 @@
 -->
 <config>
     <sections>
-        <system>
+        <schumacherfm>
+            <label>@SchumacherFM</label>
+            <tab>advanced</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>910</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
             <groups>
                 <fastindexer translate="label">
                     <label>Fast Indexer</label>
@@ -24,11 +31,9 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </enable>
-
                     </fields>
                 </fastindexer>
             </groups>
-        </system>
-
+        </schumacherfm>
     </sections>
 </config>
