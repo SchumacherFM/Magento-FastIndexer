@@ -46,50 +46,85 @@ Todo / Next Versions
 Performance
 -----------
 
-On my MacBook Air Mid 2012 tested with the following stores:
+On my MacBook Air Mid 2012 tested with the following stores.
 
-#### Stoeckli
+Condition for all tests: no load on the frontend. Just indexing.
+
+### Stoeckli
+
+#### catalog_url
+
+Empty core rewrite table in the first run.
 
 4 runs without FastIndexer:
+```
+$ time php indexer.php --reindex catalog_url
+Catalog URL Rewrites index was rebuilt successfully
+```
 
     :::text
     run real        user        sys
-    1   8m57.344s   2m54.642s   0m7.618s
-    2   8m27.316s   2m54.498s   0m7.712s
+    1   1m25.264s   1m4.542s    0m2.363s
+    2   3m50.983s   2m50.309s   0m7.267s
+    3   3m48.984s   2m44.590s   0m7.080s
+    4   3m50.500s   2m41.907s   0m7.003s
 
+4 runs with enabled FastIndexer:
 
+    :::text
+    run real        user        sys
+    1   2m9.640s    1m25.179s   0m2.756s
+    2   1m45.722s   1m11.917s   0m2.159s
+    3   1m44.896s   1m10.276s   0m2.070s
+    4   1m44.914s   1m9.794s    0m2.101s
+
+Bug: all entries where is_system=0 will be lost ...
+
+#### catalog_product_attribute
+
+Condition: tables are not truncated.
 
 ```
-$ time php indexer.php --reindex catalog_url
-Catalog URL Rewrites index was rebuilt successfully
-
-real	8m57.344s
-user	2m54.642s
-sys	0m7.618s
-
-$ time php indexer.php --reindex catalog_url
-Catalog URL Rewrites index was rebuilt successfully
-
-real	8m27.316s
-user	2m54.498s
-sys	0m7.712s
-
-$ time php indexer.php --reindex catalog_url
-Catalog URL Rewrites index was rebuilt successfully
-
-real	8m14.953s
-user	2m47.842s
-sys	0m7.568s
-
-$ time php indexer.php --reindex catalog_url
-Catalog URL Rewrites index was rebuilt successfully
-
-real	8m14.914s
-user	2m46.297s
-sys	0m7.458s
+$ time php indexer.php --reindex catalog_product_attribute
+Product Attributes index was rebuilt successfully
 ```
 
+FastIndexer disabled:
+    :::text
+    run real        user        sys
+    1   0m36.035s   0m2.986s    0m0.171s
+    2   0m34.434s   0m2.937s    0m0.156s
+    3   0m35.485s   0m3.033s    0m0.155s
 
+FastIndexer enabled:
+    :::text
+    run real        user        sys
+    1   0m26.443s   0m2.807s    0m0.155s
+    2   0m23.740s   0m2.793s    0m0.151s
+    3   0m26.503s   0m3.203s    0m0.171s
+
+#### catalog_product_price
+
+Condition: tables are not truncated.
+
+```
+$ time php indexer.php --reindex catalog_product_price
+
+```
+
+FastIndexer disabled:
+    :::text
+    run real        user        sys
+    1   0m33.496s   0m1.052s    0m0.059s
+    2   0m33.963s   0m0.997s    0m0.050s
+    3   0m33.695s   0m1.010s    0m0.051s
+
+FastIndexer enabled:
+    :::text
+    run real        user        sys
+    1
+    2
+    3
 
 Support / Contribution
 ----------------------

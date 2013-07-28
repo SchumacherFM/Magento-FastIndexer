@@ -1,11 +1,11 @@
 <?php
 /**
-* @category  SchumacherFM
-* @package   SchumacherFM_FastIndexer
-* @copyright Copyright (c) http://www.schumacher.fm
-* @license   private!
-* @author    Cyrill at Schumacher dot fm @SchumacherFM
-*/
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   private!
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
+ */
 class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
 {
     const FINDEX_TBL_PREFIX = 'afstidex_';
@@ -69,7 +69,7 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
     protected function _createTable($newTableName)
     {
         if ($this->_isIndexTable() && !$this->_existsNewTableInDb($newTableName)) {
-            $this->_connection->query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
+            $this->_connection->query('/*disable _checkDdlTransaction*/ CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
         }
 
         $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);

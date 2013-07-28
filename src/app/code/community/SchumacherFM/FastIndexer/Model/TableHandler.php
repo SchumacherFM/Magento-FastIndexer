@@ -59,7 +59,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
                     echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
                     flush();
                 }
-                // $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable);
+                $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable);
                 $this->_dropTable($oldExistingTable);
 
                 // reset table names
@@ -79,13 +79,19 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
      */
     protected function _copyCustomUrlRewrites($currentTableName, $oldExistingTable)
     {
+        /**
+         * seems there is a strange thing finding the custom rewrites
+         * now the custom rewrites will be lost ...
+         */
+        return true;
+
         if (strstr($this->_getResource()->getTableName('core/url_rewrite'), $currentTableName) === FALSE) {
             return FALSE;
         }
         $columns = $this->_getColumnsFromTable($currentTableName);
 
         // maybe use insertFromSelect() ...
-        $this->_getConnection()->query('REPLACE INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
+        $this->_getConnection()->query('INSERT INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
             SELECT ' . implode(',', $columns) . ' FROM `' . $oldExistingTable . '` WHERE `is_system`=0');
         return TRUE;
     }
@@ -143,7 +149,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             $this->_sqlRenameTo($newTable, $existingTable),
         );
         $sql    = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
-        $this->_getConnection() ->query($sql);
+        $this->_getConnection()->query($sql);
         return $oldExistingTable;
     }
 
