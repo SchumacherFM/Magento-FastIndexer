@@ -89,59 +89,103 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
      */
     protected function _restoreTableKeys($_originalTableName, $oldOriginalTable)
     {
-        $_originalFks    = $this->_getConnection()->getForeignKeys($_originalTableName);
-        $_oldOriginalFks = $this->_getConnection()->getForeignKeys($oldOriginalTable);
+        $_originalFks = $this->_getConnection()->getForeignKeys($_originalTableName);
 
-        if (count($_originalFks) > 0 && count($_oldOriginalFks) > 0) {
+        if (count($_originalFks) > 0) {
             // because key name contains: FINDEX_TBL_PREFIX
+            // drop and create of a FK only possible in ONE statement = RENAME
+            $sqlFk = array();
             foreach ($_originalFks as $_fk) {
                 if ($this->_isEchoOn === TRUE) {
                     echo 'Drop FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
                 }
-                $this->_connection->dropForeignKey($_originalTableName, $_fk['FK_NAME']);
-            }
+                $sqlFk[] = 'DROP FOREIGN KEY ' . $this->_quote($_fk['FK_NAME']);
 
-            foreach ($_oldOriginalFks as $_fk) {
+                $originalFkName = $this->_removeTablePrefix($_fk['FK_NAME']);
                 if ($this->_isEchoOn === TRUE) {
-                    echo 'Add FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
+                    echo 'Add FK: ' . $_originalTableName . ' -> ' . $originalFkName . PHP_EOL;
                 }
-                $this->_connection->addForeignKey(
-                    $_fk['FK_NAME'],
-                    $_originalTableName,
-                    $_fk['COLUMN_NAME'],
-                    $_fk['REF_TABLE_NAME'],
-                    $_fk['REF_COLUMN_NAME'],
-                    $_fk['ON_DELETE'],
-                    $_fk['ON_UPDATE']
+
+                $query = sprintf('ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)',
+                    $this->_quote($originalFkName),
+                    $this->_quote($_fk['COLUMN_NAME']),
+                    $this->_quote($_fk['REF_TABLE_NAME']),
+                    $this->_quote($_fk['REF_COLUMN_NAME'])
                 );
+
+                if (!empty($_fk['ON_DELETE'])) {
+                    $query .= ' ON DELETE ' . strtoupper($_fk['ON_DELETE']);
+                }
+                if (!empty($_fk['ON_UPDATE'])) {
+                    $query .= ' ON UPDATE ' . strtoupper($_fk['ON_UPDATE']);
+                }
+
+                $sqlFk[] = $query;
             }
+            $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlFk);
+            $this->_getConnection()->raw_query($sql);
         }
 
-        $_originalIndexList    = $this->_getIndexList($_originalTableName);
-        $_oldOriginalIndexList = $this->_getIndexList($oldOriginalTable);
+        $_originalIndexList = $this->_getIndexList($_originalTableName);
 
-        if (count($_originalIndexList) > 0 && count($_oldOriginalIndexList) > 0) {
+        if (count($_originalIndexList) > 0) {
+            // drop and create of an index only possible in ONE statement = RENAME
+            $sqlIndex = array();
             foreach ($_originalIndexList as $_key) {
                 if ($this->_isEchoOn === TRUE) {
                     echo 'Drop IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
                 }
-                $this->_connection->dropForeignKey($_originalTableName, $_key['KEY_NAME']);
-            }
+                $sqlIndex[] = 'DROP INDEX ' . $this->_quote($_key['KEY_NAME']);
 
-            foreach ($_oldOriginalIndexList as $_key) {
+                $originalIdxName = $this->_removeTablePrefix($_key['KEY_NAME']);
                 if ($this->_isEchoOn === TRUE) {
-                    echo 'Add IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
+                    echo 'Add IDX: ' . $_originalTableName . ' -> ' . $originalIdxName . PHP_EOL;
                 }
-                $this->_connection->addIndex(
-                    $_originalTableName,
-                    $_key['KEY_NAME'],
-                    $_key['COLUMNS_LIST'],
-                    $_key['INDEX_TYPE']
-                );
+
+                switch (strtolower($_key['INDEX_TYPE'])) {
+                    case Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE:
+                        $condition = 'UNIQUE ' . $this->_quote($originalIdxName);
+                        break;
+                    case Varien_Db_Adapter_Interface::INDEX_TYPE_FULLTEXT:
+                        $condition = 'FULLTEXT ' . $this->_quote($originalIdxName);
+                        break;
+                    default:
+                        $condition = 'INDEX ' . $this->_quote($originalIdxName);
+                        break;
+                }
+
+                foreach ($_key['COLUMNS_LIST'] as $k => $v) {
+                    $_key['COLUMNS_LIST'][$k] = $this->_quote($v);
+                }
+                $sqlIndex[] = sprintf('ADD %s (%s)', $condition, implode(',', $_key['COLUMNS_LIST']));
             }
+            $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlIndex);
+            $this->_getConnection()->raw_query($sql);
         }
 
         return $this;
+    }
+
+    /**
+     * index names are always upper case
+     *
+     * @param $string
+     *
+     * @return mixed
+     */
+    protected function _removeTablePrefix($string)
+    {
+        return str_replace(strtoupper(SchumacherFM_FastIndexer_Model_TableCreator::FINDEX_TBL_PREFIX), '', $string);
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
+    protected function _quote($string)
+    {
+        return $this->_getConnection()->quoteIdentifier($string);
     }
 
     /**
@@ -225,11 +269,13 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
             ? '_old'
             : date('mdHi');
 
-        $tables = array(
-            $this->_sqlRenameTo($oldTable, $oldTableNewName),
-            $this->_sqlRenameTo($newTable, $oldTable),
-        );
-        $sql    = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
+        $tables = array();
+        if ($this->_getConnection()->isTableExists($oldTable)) {
+            $tables[] = $this->_sqlRenameTo($oldTable, $oldTableNewName);
+        }
+        $tables[] = $this->_sqlRenameTo($newTable, $oldTable);
+
+        $sql = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
         $this->_getConnection()->raw_query($sql);
         return $oldTableNewName;
     }
