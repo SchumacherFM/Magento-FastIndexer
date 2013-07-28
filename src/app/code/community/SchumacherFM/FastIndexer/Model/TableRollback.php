@@ -39,7 +39,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
             }
             try {
                 $oldTableNewName = $this->_renameTable($_originalTableName, $_tempTableName);
-                $this->_restoreTableKeys($_originalTableName, $oldTableNewName);
+                $this->_restoreTableKeys($_originalTableName);
 
                 if ($this->_isEchoOn === TRUE) {
                     echo $this->_formatLine($oldTableNewName, $this->_getTableCount($_originalTableName));
@@ -80,14 +80,18 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
     }
 
     /**
+     * exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 1005 Can't create table 'stoeckli-11-snapshot-local.afstidex_catalog_product_flat_5' (errno: 121)' in /Volumes/unic/www/stoeckli-dev/
+     * @todo bug: before the temp flat table will be created change the original index names
+     * use event: catalog_product_flat_prepare_indexes this applies only for products ... not for categories ...
+     * have to find another solution
+     *
      * restores the original name of the foreign key
      *
      * @param string $_originalTableName
-     * @param string $oldOriginalTable
      *
      * @return $this
      */
-    protected function _restoreTableKeys($_originalTableName, $oldOriginalTable)
+    protected function _restoreTableKeys($_originalTableName)
     {
         $_originalFks = $this->_getConnection()->getForeignKeys($_originalTableName);
 
