@@ -6,7 +6,7 @@
  * @license   private!
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-class SchumacherFM_FastIndexer_Model_TableCreator extends Varien_Object
+class SchumacherFM_FastIndexer_Model_TableCreator
 {
     const FINDEX_TBL_PREFIX = 'afstidex_';
 
@@ -45,31 +45,39 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends Varien_Object
             return TRUE;
         }
 
-        /** @var Mage_Core_Model_Resource _resource */
-        $this->_resource = $event->getEvent()->getResource();
-        /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
-        $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
-
-        $this->_setOriginalTableName($event->getEvent()->getTableName(), $event->getEvent()->getTableSuffix());
+        $this->_setOriginalTableName($event->getEvent()->getTableName());
 
         if ($this->_isIndexTable() || $this->_isFlatTable()) {
-            $this->_setTempTableName()->_createTempTable();
+            /** @var Mage_Core_Model_Resource _resource */
+            $this->_resource = $event->getEvent()->getResource();
+            /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
+            $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
+
+            $this->_setTempTableName()->_createTempTable($event->getEvent()->getTableSuffix());
         }
     }
 
     /**
      * @param string $table
-     * @param string $tableSuffix
      *
      * @return $this
      */
-    protected function _setOriginalTableName($table, $tableSuffix = '')
+    protected function _setOriginalTableName($table)
     {
         $this->_originalTableName = $table;
-        if (!empty($tableSuffix)) {
-            $this->_originalTableName .= '_' . $tableSuffix;
-        }
         $this->_originalTableName = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_originalTableName);
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    protected function _setTempTableName()
+    {
+        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== FALSE) {
+            $this->_tempTableName = $this->_originalTableName;
+        }
+        $this->_tempTableName = self::FINDEX_TBL_PREFIX . $this->_originalTableName;
         return $this;
     }
 
@@ -82,22 +90,40 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends Varien_Object
     }
 
     /**
+     * @param string $tableSuffix
+     *
      * @return $this
      * @throws Exception
      */
-    protected function _createTempTable()
+    protected function _createTempTable($tableSuffix = '')
     {
-        if(empty($this->_tempTableName)){
+        if (empty($this->_tempTableName)) {
             throw new Exception('fastindexer: $this->_tempTableName is empty!');
         }
 
         if ($this->_isIndexTable() && !$this->_existsTempTableInDb()) {
-            $this->_connection->raw_query('CREATE TABLE `' . $this->_tempTableName . '` like `' . $this->_originalTableName . '`');
+            $this->_connection->raw_query(
+                '/*disable _checkDdlTransaction*/ CREATE TABLE `' . $this->_tempTableName . '` like `' . $this->_originalTableName . '`'
+            );
         }
 
-        $this->_resource->setMappedTableName($this->_originalTableName, $this->_tempTableName);
-        $this->_createdTables[$this->_tempTableName] = $this->_originalTableName;
+        $this->_setMapper($this->_originalTableName, $this->_tempTableName);
+        // create "virtual" entries ...
+        if (!empty($tableSuffix)) {
+            $this->_setMapper($this->_originalTableName . '_' . $tableSuffix, $this->_tempTableName . '_' . $tableSuffix);
+        }
+
         return $this;
+    }
+
+    /**
+     * @param string $_originalTableName
+     * @param string $_tempTableName
+     */
+    protected function _setMapper($_originalTableName, $_tempTableName)
+    {
+        $this->_resource->setMappedTableName($_originalTableName, $_tempTableName);
+        $this->_createdTables[$_tempTableName] = $_originalTableName;
     }
 
     /**
@@ -116,18 +142,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends Varien_Object
             }
         }
         return isset($this->_createdTables[$this->_tempTableName]);
-    }
-
-    /**
-     * @return $this
-     */
-    protected function _setTempTableName()
-    {
-        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== FALSE) {
-            $this->_tempTableName = $this->_originalTableName;
-        }
-        $this->_tempTableName = self::FINDEX_TBL_PREFIX . $this->_originalTableName;
-        return $this;
     }
 
     /**

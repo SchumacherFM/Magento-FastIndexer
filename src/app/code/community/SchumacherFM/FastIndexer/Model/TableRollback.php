@@ -16,6 +16,8 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
      */
     protected $_connection = null;
 
+    protected $_isEchoOn = FALSE;
+
     /**
      * @param Varien_Event_Observer $event
      *
@@ -23,7 +25,8 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
      */
     public function rollbackTables(Varien_Event_Observer $event = null)
     {
-        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->getTables();
+        $this->_isEchoOn = Mage::helper('schumacherfm_fastindexer')->isEcho();
+        $tablesToRename  = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
 
         if (empty($tablesToRename)) {
             return FALSE;
@@ -36,9 +39,9 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
             }
             try {
                 $oldTableNewName = $this->_renameTable($_originalTableName, $_tempTableName);
-                $this->_restoreForeignKeys($_originalTableName, $_tempTableName);
+                $this->_restoreTableKeys($_originalTableName, $oldTableNewName);
 
-                if (Mage::helper('schumacherfm_fastindexer')->isEcho() === TRUE) {
+                if ($this->_isEchoOn === TRUE) {
                     echo $this->_formatLine($oldTableNewName, $this->_getTableCount($_originalTableName));
                     echo $this->_formatLine($_originalTableName, $this->_getTableCount($_originalTableName));
                     flush();
@@ -49,11 +52,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
                 // reset table names
                 $this->_getResource()->setMappedTableName($_originalTableName, $_originalTableName);
             } catch (Exception $e) {
+                echo 'Please see exception log!' . PHP_EOL;
                 Mage::logException($e);
             }
         }
         // due to singleton pattern ... reset Tables
-        Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->unsetTables();
+        Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->unsetTables();
     }
 
     /**
@@ -76,33 +80,82 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
     }
 
     /**
-     * @param $_originalTableName
-     * @param $_tempTableName
+     * restores the original name of the foreign key
+     *
+     * @param string $_originalTableName
+     * @param string $oldOriginalTable
+     *
+     * @return $this
      */
-    protected function _restoreForeignKeys($_originalTableName, $_tempTableName)
+    protected function _restoreTableKeys($_originalTableName, $oldOriginalTable)
     {
-        $_originalFk = $this->_connection->getForeignKeys($_originalTableName);
-        $_tempFk     = $this->_connection->getForeignKeys($_tempTableName);
+        $_originalFks    = $this->_getConnection()->getForeignKeys($_originalTableName);
+        $_oldOriginalFks = $this->_getConnection()->getForeignKeys($oldOriginalTable);
 
-        Zend_Debug::dump($_originalFk);
-        Zend_Debug::dump($_tempFk);
-        exit;
+        if (count($_originalFks) > 0 && count($_oldOriginalFks) > 0) {
+            // because key name contains: FINDEX_TBL_PREFIX
+            foreach ($_originalFks as $_fk) {
+                if ($this->_isEchoOn === TRUE) {
+                    echo 'Drop FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
+                }
+                $this->_connection->dropForeignKey($_originalTableName, $_fk['FK_NAME']);
+            }
 
-        // drop on original tables the constraints
-        // http://dba.stackexchange.com/questions/425/error-creating-foreign-key-from-mysql-workbench
-//        if ($this->_isFlatTable() && !Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName)) {
-//
-//            $foreignKeys = $this->_connection->getForeignKeys($this->_currentTableName);
-//            foreach ($foreignKeys as $key) {
-//                $sql = sprintf('ALTER TABLE %s DROP FOREIGN KEY %s',
-//                    $this->_connection->quoteIdentifier($this->_currentTableName),
-//                    $this->_connection->quoteIdentifier($key['FK_NAME'])
-//                );
-//                $this->_connection->raw_query($sql);
-//            }
-//
-//        }
+            foreach ($_oldOriginalFks as $_fk) {
+                if ($this->_isEchoOn === TRUE) {
+                    echo 'Add FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
+                }
+                $this->_connection->addForeignKey(
+                    $_fk['FK_NAME'],
+                    $_originalTableName,
+                    $_fk['COLUMN_NAME'],
+                    $_fk['REF_TABLE_NAME'],
+                    $_fk['REF_COLUMN_NAME'],
+                    $_fk['ON_DELETE'],
+                    $_fk['ON_UPDATE']
+                );
+            }
+        }
 
+        $_originalIndexList    = $this->_getIndexList($_originalTableName);
+        $_oldOriginalIndexList = $this->_getIndexList($oldOriginalTable);
+
+        if (count($_originalIndexList) > 0 && count($_oldOriginalIndexList) > 0) {
+            foreach ($_originalIndexList as $_key) {
+                if ($this->_isEchoOn === TRUE) {
+                    echo 'Drop IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
+                }
+                $this->_connection->dropForeignKey($_originalTableName, $_key['KEY_NAME']);
+            }
+
+            foreach ($_oldOriginalIndexList as $_key) {
+                if ($this->_isEchoOn === TRUE) {
+                    echo 'Add IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
+                }
+                $this->_connection->addIndex(
+                    $_originalTableName,
+                    $_key['KEY_NAME'],
+                    $_key['COLUMNS_LIST'],
+                    $_key['INDEX_TYPE']
+                );
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param string $tableName
+     *
+     * @return array
+     */
+    protected function _getIndexList($tableName)
+    {
+        $index = $this->_getConnection()->getIndexList($tableName);
+        if (isset($index['PRIMARY'])) {
+            unset($index['PRIMARY']);
+        }
+        return $index;
     }
 
     /**
@@ -176,7 +229,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
             $this->_sqlRenameTo($oldTable, $oldTableNewName),
             $this->_sqlRenameTo($newTable, $oldTable),
         );
-        $sql    = 'RENAME TABLE ' . implode(',', $tables);
+        $sql    = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
         $this->_getConnection()->raw_query($sql);
         return $oldTableNewName;
     }
