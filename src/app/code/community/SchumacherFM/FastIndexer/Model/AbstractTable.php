@@ -61,10 +61,11 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      * restores the original name of the foreign key
      *
      * @param string $_originalTableName
+     * @param string $addOrRemoveTablePrefixToKey
      *
      * @return $this
      */
-    protected function _restoreTableKeys($_originalTableName)
+    protected function _restoreTableKeys($_originalTableName, $addOrRemoveTablePrefixToKey = '+')
     {
         $_originalFks = $this->_getConnection()->getForeignKeys($_originalTableName);
 
@@ -152,7 +153,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _removeTablePrefix($string)
     {
-        return str_replace(strtoupper(SchumacherFM_FastIndexer_Model_TableCreator::FINDEX_TBL_PREFIX), '', $string);
+        return str_replace(strtoupper(self::FINDEX_TBL_PREFIX), '', $string);
     }
 
     /**
@@ -178,7 +179,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
         }
         return $index;
     }
-
 
     /**
      * returns all non PRI columns
