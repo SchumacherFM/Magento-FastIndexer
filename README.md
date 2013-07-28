@@ -89,6 +89,7 @@ Product Attributes index was rebuilt successfully
 ```
 
 FastIndexer disabled:
+
     :::text
     run real        user        sys
     1   0m36.035s   0m2.986s    0m0.171s
@@ -96,6 +97,7 @@ FastIndexer disabled:
     3   0m35.485s   0m3.033s    0m0.155s
 
 FastIndexer enabled:
+
     :::text
     run real        user        sys
     1   0m26.443s   0m2.807s    0m0.155s
@@ -112,6 +114,7 @@ Product Prices index was rebuilt successfully
 ```
 
 FastIndexer disabled:
+
     :::text
     run real        user        sys
     1   0m33.496s   0m1.052s    0m0.059s
@@ -119,6 +122,7 @@ FastIndexer disabled:
     3   0m33.695s   0m1.010s    0m0.051s
 
 FastIndexer enabled:
+
     :::text
     run real        user        sys
     1   0m22.719s   0m1.094s    0m0.059s
@@ -134,6 +138,7 @@ $ time php indexer.php --reindex catalog_product_flat
 ```
 
 FastIndexer disabled:
+
     :::text
     run real        user        sys
     1   0m36.161s   0m2.706s    0m0.356s
@@ -141,6 +146,7 @@ FastIndexer disabled:
     3   0m36.285s   0m2.785s    0m0.359s
 
 FastIndexer enabled:
+
     :::text
     run real        user        sys
     1

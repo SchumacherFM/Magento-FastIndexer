@@ -119,6 +119,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
          */
         return TRUE;
 
+        /**
+         * this query could be the solution:
+         * delete FROM `core_url_rewrite` WHERE is_system =0 AND id_path RLIKE  '[0-9]+_[0-9]+'
+         * these entries are rewrites for old names
+         */
+
         if (strstr($this->_getResource()->getTableName('core/url_rewrite'), $currentTableName) === FALSE) {
             return FALSE;
         }
