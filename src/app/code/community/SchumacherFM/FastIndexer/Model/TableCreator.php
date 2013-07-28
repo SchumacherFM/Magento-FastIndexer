@@ -6,23 +6,13 @@
  * @license   private!
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-class SchumacherFM_FastIndexer_Model_TableCreator
+class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
-    const FINDEX_TBL_PREFIX = 'afstidex_';
 
     /**
      * @var array
      */
     protected $_createdTables = NULL;
-
-    /**
-     * @var Mage_Core_Model_Resource
-     */
-    protected $_resource = null;
-    /**
-     * @var Varien_Db_Adapter_Pdo_Mysql
-     */
-    protected $_connection = null;
 
     /**
      * @var string
