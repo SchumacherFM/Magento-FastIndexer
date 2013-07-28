@@ -50,7 +50,20 @@ On my MacBook Air Mid 2012 tested with the following stores:
 
 #### Stoeckli
 
-3 runs without FastIndexer:
+4 runs without FastIndexer:
+
+<table>
+    <tr>
+        <th>real</th>
+        <th>user</th>
+        <th>sys</th>
+    </tr>
+    <tr>
+        <td>8m57.344s</td>
+        <td>2m54.642s</td>
+        <td>0m7.618s</td>
+    </tr>
+</table
 
 ```
 $ time php indexer.php --reindex catalog_url
@@ -59,12 +72,27 @@ Catalog URL Rewrites index was rebuilt successfully
 real	8m57.344s
 user	2m54.642s
 sys	0m7.618s
+
 $ time php indexer.php --reindex catalog_url
 Catalog URL Rewrites index was rebuilt successfully
 
 real	8m27.316s
 user	2m54.498s
 sys	0m7.712s
+
+$ time php indexer.php --reindex catalog_url
+Catalog URL Rewrites index was rebuilt successfully
+
+real	8m14.953s
+user	2m47.842s
+sys	0m7.568s
+
+$ time php indexer.php --reindex catalog_url
+Catalog URL Rewrites index was rebuilt successfully
+
+real	8m14.914s
+user	2m46.297s
+sys	0m7.458s
 ```
 
 

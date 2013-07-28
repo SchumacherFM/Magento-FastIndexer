@@ -59,7 +59,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
                     echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
                     flush();
                 }
-                $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable); // @todo bug, does not copy
+                $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable);
                 $this->_dropTable($oldExistingTable);
 
                 // reset table names
@@ -85,7 +85,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
         $columns = $this->_getColumnsFromTable($currentTableName);
 
         // maybe use insertFromSelect() ...
-        $this->_getConnection()->query('INSERT INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
+        $this->_getConnection()->query('REPLACE INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
             SELECT ' . implode(',', $columns) . ' FROM `' . $oldExistingTable . '` WHERE `is_system`=0');
         return TRUE;
     }
@@ -142,8 +142,8 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             $this->_sqlRenameTo($existingTable, $oldExistingTable),
             $this->_sqlRenameTo($newTable, $existingTable),
         );
-        $sql    = 'RENAME TABLE ' . implode(',', $tables);
-        $this->_getConnection()->query($sql);
+        $sql    = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
+        $this->_getConnection() ->query($sql);
         return $oldExistingTable;
     }
 
