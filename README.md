@@ -43,16 +43,15 @@ Todo / Next Versions
 --------------------
 - nothing ...
 
-Performance
------------
+# Performance
 
 On my MacBook Air Mid 2012 tested with the following stores.
 
 Condition for all tests: no load on the frontend. Just indexing.
 
-### Stoeckli
+## Stoeckli
 
-#### catalog_url
+### catalog_url
 
 Empty core rewrite table in the first run.
 
@@ -80,7 +79,7 @@ Catalog URL Rewrites index was rebuilt successfully
 
 Bug: all entries where is_system=0 will be lost ...
 
-#### catalog_product_attribute
+### catalog_product_attribute
 
 Condition: tables are not truncated.
 
@@ -103,13 +102,13 @@ FastIndexer enabled:
     2   0m23.740s   0m2.793s    0m0.151s
     3   0m26.503s   0m3.203s    0m0.171s
 
-#### catalog_product_price
+### catalog_product_price
 
 Condition: tables are not truncated.
 
 ```
 $ time php indexer.php --reindex catalog_product_price
-
+Product Prices index was rebuilt successfully
 ```
 
 FastIndexer disabled:
@@ -122,9 +121,32 @@ FastIndexer disabled:
 FastIndexer enabled:
     :::text
     run real        user        sys
+    1   0m22.719s   0m1.094s    0m0.059s
+    2   0m21.737s   0m1.089s    0m0.056s
+    3   0m21.404s   0m1.058s    0m0.053s
+
+### catalog_product_flat
+
+Condition: tables are not truncated. 8 Store Views.
+
+```
+$ time php indexer.php --reindex catalog_product_flat
+```
+
+FastIndexer disabled:
+    :::text
+    run real        user        sys
+    1   0m36.161s   0m2.706s    0m0.356s
+    2   0m35.819s   0m2.578s    0m0.349s
+    3   0m36.285s   0m2.785s    0m0.359s
+
+FastIndexer enabled:
+    :::text
+    run real        user        sys
     1
     2
     3
+
 
 Support / Contribution
 ----------------------

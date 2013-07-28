@@ -69,11 +69,27 @@ class SchumacherFM_FastIndexer_Model_FastIndexer extends Varien_Object
     protected function _createTable($newTableName)
     {
         if ($this->_isIndexTable() && !$this->_existsNewTableInDb($newTableName)) {
-            $this->_connection->query('/*disable _checkDdlTransaction*/ CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
+            $this->_connection->raw_query('CREATE TABLE `' . $newTableName . '` like `' . $this->_currentTableName . '`');
+        }
+
+        $this->_currentTableName = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_currentTableName);
+        // drop on original tables the constraints
+        // http://dba.stackexchange.com/questions/425/error-creating-foreign-key-from-mysql-workbench
+        if ($this->_isFlatTable() && !Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName)) {
+
+            $foreignKeys = $this->_connection->getForeignKeys($this->_currentTableName);
+            foreach ($foreignKeys as $key) {
+                $sql = sprintf('ALTER TABLE %s DROP FOREIGN KEY %s',
+                    $this->_connection->quoteIdentifier($this->_currentTableName),
+                    $this->_connection->quoteIdentifier($key['FK_NAME'])
+                );
+                $this->_connection->raw_query($sql);
+            }
+
         }
 
         $this->_resource->setMappedTableName($this->_currentTableName, $newTableName);
-        $this->_createdTables[$newTableName] = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_currentTableName);
+        $this->_createdTables[$newTableName] = $this->_currentTableName;
         return TRUE;
     }
 

@@ -37,4 +37,16 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return (int)Mage::getStoreConfig('schumacherfm/fastindexer/echo') === 1;
     }
+
+    /**
+     * @param string $currentTableName
+     *
+     * @return bool
+     */
+    public function isFlatTablePrefix($currentTableName)
+    {
+        return
+            $currentTableName === self::CATALOG_CATEGORY_FLAT ||
+            $currentTableName === self::CATALOG_PRODUCT_FLAT;
+    }
 }

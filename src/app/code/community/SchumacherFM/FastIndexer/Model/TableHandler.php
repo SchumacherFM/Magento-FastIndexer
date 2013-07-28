@@ -48,7 +48,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
 
         foreach ($tablesToRename as $newTable => $currentTableName) {
 
-            if ($this->_isFlatTablePrefix($currentTableName)) {
+            if (Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($currentTableName)) {
                 continue;
             }
             try {
@@ -118,18 +118,6 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
     }
 
     /**
-     * @param string $currentTableName
-     *
-     * @return bool
-     */
-    protected function _isFlatTablePrefix($currentTableName)
-    {
-        return
-            $currentTableName === SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT ||
-            $currentTableName === SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT;
-    }
-
-    /**
      * That's the magic ;-)
      *
      * @param string $existingTable
@@ -148,8 +136,8 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
             $this->_sqlRenameTo($existingTable, $oldExistingTable),
             $this->_sqlRenameTo($newTable, $existingTable),
         );
-        $sql    = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
-        $this->_getConnection()->query($sql);
+        $sql    = 'RENAME TABLE ' . implode(',', $tables);
+        $this->_getConnection()->raw_query($sql);
         return $oldExistingTable;
     }
 
