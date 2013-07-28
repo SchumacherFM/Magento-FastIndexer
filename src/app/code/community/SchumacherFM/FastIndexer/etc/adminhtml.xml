@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ /**
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   private!
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
+ */
+-->
+<config>
+    <acl>
+   		<resources>
+   			<admin>
+   				<children>
+   					<system>
+   						<children>
+   							<config>
+   								<children>
+   									<schumacherfm translate="title" module="schumacherfm_fastindexer">
+   										<title>@SchumacherFM (Config)</title>
+   									</schumacherfm>
+   								</children>
+   							</config>
+   						</children>
+   					</system>
+   				</children>
+   			</admin>
+   		</resources>
+   	</acl>
+</config>
