@@ -59,7 +59,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
                     echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
                     flush();
                 }
-                $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable);
+                // $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable);
                 $this->_dropTable($oldExistingTable);
 
                 // reset table names
