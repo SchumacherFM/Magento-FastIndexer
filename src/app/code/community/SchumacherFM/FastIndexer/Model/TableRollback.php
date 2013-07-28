@@ -6,7 +6,7 @@
  * @license   private!
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
+class SchumacherFM_FastIndexer_Model_TableRollback extends Varien_Object
 {
 
     const EVENT_PREFIX = 'after_reindex_process_';
@@ -15,6 +15,46 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
      * @var Varien_Db_Adapter_Pdo_Mysql
      */
     protected $_connection = null;
+
+    /**
+     * @param Varien_Event_Observer $event
+     *
+     * @return bool
+     */
+    public function rollbackTables(Varien_Event_Observer $event = null)
+    {
+        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->getTables();
+
+        if (empty($tablesToRename)) {
+            return FALSE;
+        }
+
+        foreach ($tablesToRename as $_tempTableName => $_originalTableName) {
+
+            if (Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($_originalTableName)) {
+                continue;
+            }
+            try {
+                $oldTableNewName = $this->_renameTable($_originalTableName, $_tempTableName);
+                $this->_restoreForeignKeys($_originalTableName, $_tempTableName);
+
+                if (Mage::helper('schumacherfm_fastindexer')->isEcho() === TRUE) {
+                    echo $this->_formatLine($oldTableNewName, $this->_getTableCount($_originalTableName));
+                    echo $this->_formatLine($_originalTableName, $this->_getTableCount($_originalTableName));
+                    flush();
+                }
+                $this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
+                $this->_dropTable($oldTableNewName);
+
+                // reset table names
+                $this->_getResource()->setMappedTableName($_originalTableName, $_originalTableName);
+            } catch (Exception $e) {
+                Mage::logException($e);
+            }
+        }
+        // due to singleton pattern ... reset Tables
+        Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->unsetTables();
+    }
 
     /**
      * @return Varien_Db_Adapter_Pdo_Mysql
@@ -36,39 +76,33 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
     }
 
     /**
-     * @param Varien_Event_Observer $event
+     * @param $_originalTableName
+     * @param $_tempTableName
      */
-    public function renameTables(Varien_Event_Observer $event)
+    protected function _restoreForeignKeys($_originalTableName, $_tempTableName)
     {
-        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->getTables();
+        $_originalFk = $this->_connection->getForeignKeys($_originalTableName);
+        $_tempFk     = $this->_connection->getForeignKeys($_tempTableName);
 
-        if (empty($tablesToRename)) {
-            return FALSE;
-        }
+        Zend_Debug::dump($_originalFk);
+        Zend_Debug::dump($_tempFk);
+        exit;
 
-        foreach ($tablesToRename as $newTable => $currentTableName) {
+        // drop on original tables the constraints
+        // http://dba.stackexchange.com/questions/425/error-creating-foreign-key-from-mysql-workbench
+//        if ($this->_isFlatTable() && !Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName)) {
+//
+//            $foreignKeys = $this->_connection->getForeignKeys($this->_currentTableName);
+//            foreach ($foreignKeys as $key) {
+//                $sql = sprintf('ALTER TABLE %s DROP FOREIGN KEY %s',
+//                    $this->_connection->quoteIdentifier($this->_currentTableName),
+//                    $this->_connection->quoteIdentifier($key['FK_NAME'])
+//                );
+//                $this->_connection->raw_query($sql);
+//            }
+//
+//        }
 
-            if (Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($currentTableName)) {
-                continue;
-            }
-            try {
-                $oldExistingTable = $this->_renameTable($currentTableName, $newTable);
-
-                if (Mage::helper('schumacherfm_fastindexer')->isEcho() === TRUE) {
-                    echo $this->_formatLine($oldExistingTable, $this->_getTableCount($currentTableName));
-                    echo $this->_formatLine($currentTableName, $this->_getTableCount($currentTableName));
-                    flush();
-                }
-                $this->_copyCustomUrlRewrites($currentTableName, $oldExistingTable);
-                $this->_dropTable($oldExistingTable);
-
-                // reset table names
-                $this->_getResource()->setMappedTableName($currentTableName, $currentTableName);
-            } catch (Exception $e) {
-                Mage::logException($e);
-            }
-        }
-        Mage::getSingleton('schumacherfm_fastindexer/fastIndexer')->unsetTables();
     }
 
     /**
@@ -83,7 +117,7 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
          * seems there is a strange thing finding the custom rewrites
          * now the custom rewrites will be lost ...
          */
-        return true;
+        return TRUE;
 
         if (strstr($this->_getResource()->getTableName('core/url_rewrite'), $currentTableName) === FALSE) {
             return FALSE;
@@ -120,25 +154,25 @@ class SchumacherFM_FastIndexer_Model_TableHandler extends Varien_Object
     /**
      * That's the magic ;-)
      *
-     * @param string $existingTable
+     * @param string $oldTable
      * @param string $newTable
      *
      * @return string
      */
-    protected function _renameTable($existingTable, $newTable)
+    protected function _renameTable($oldTable, $newTable)
     {
-        $oldExistingTable = $existingTable;
-        $oldExistingTable .= Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE
+        $oldTableNewName = $oldTable;
+        $oldTableNewName .= Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE
             ? '_old'
             : date('mdHi');
 
         $tables = array(
-            $this->_sqlRenameTo($existingTable, $oldExistingTable),
-            $this->_sqlRenameTo($newTable, $existingTable),
+            $this->_sqlRenameTo($oldTable, $oldTableNewName),
+            $this->_sqlRenameTo($newTable, $oldTable),
         );
         $sql    = 'RENAME TABLE ' . implode(',', $tables);
         $this->_getConnection()->raw_query($sql);
-        return $oldExistingTable;
+        return $oldTableNewName;
     }
 
     /**
