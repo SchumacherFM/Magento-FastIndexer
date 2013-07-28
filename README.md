@@ -52,11 +52,11 @@ On my MacBook Air Mid 2012 tested with the following stores:
 
 4 runs without FastIndexer:
 
-```
-run real        user        sys
-1   8m57.344s   2m54.642s   0m7.618s
-2   8m27.316s   2m54.498s   0m7.712s
-```
+    :::text
+    run real        user        sys
+    1   8m57.344s   2m54.642s   0m7.618s
+    2   8m27.316s   2m54.498s   0m7.712s
+
 
 
 ```
