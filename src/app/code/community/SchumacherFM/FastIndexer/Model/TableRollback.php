@@ -64,6 +64,20 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         /**
          * seems there is a strange thing finding the custom rewrites
          * now the custom rewrites will be lost ...
+         *
+         * SOLUTION but ...
+
+
+        create table `core_url_rewrite_bkp` like `core_url_rewrite`;
+        insert into `core_url_rewrite_bkp` select * from `core_url_rewrite`;
+        truncate table `core_url_rewrite`;
+        -- getting custom rewrites resp. redirects
+        insert into `core_url_rewrite` (`store_id` ,  `id_path` ,  `request_path` ,  `target_path` ,  `is_system` ,  `options` ,  `description` ,
+        `category_id` ,  `product_id` )
+        SELECT `store_id` ,  `id_path` ,  `request_path` ,  `target_path` ,  `is_system` ,  `options` ,  `description` ,  `category_id` ,
+        `product_id`  FROM `core_url_rewrite_bkp` where is_system=0 and id_path not like '%|_%' ESCAPE '|' order by `store_id`,`id_path`;
+        select 'now reindex the rewrites';
+
          */
         return TRUE;
 
