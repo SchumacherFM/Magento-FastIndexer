@@ -3,7 +3,7 @@
 require_once 'abstract.php';
 require_once 'indexer.php';
 
-define('FASTINDEXER_SHELL',true);
+define('FASTINDEXER_SHELL', true);
 
 /**
  * @author      Cys
@@ -16,7 +16,6 @@ class Mage_Shell_FastIndexer extends Mage_Shell_Compiler
         $tables = Mage::getSingleton('findex/fastIndexer');
 
         Zend_Debug::dump($tables->getTables());
-
     }
 
     /**
@@ -30,9 +29,7 @@ class Mage_Shell_FastIndexer extends Mage_Shell_Compiler
         if ($this->getArg('reindex') || $this->getArg('reindexall')) {
             $this->_renameTables();
         }
-
     }
-
 }
 
 $shell = new Mage_Shell_FastIndexer();
