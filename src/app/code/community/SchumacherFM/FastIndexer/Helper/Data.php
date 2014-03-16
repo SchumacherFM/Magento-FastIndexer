@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
@@ -19,7 +20,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function isEnabled()
     {
-        return (int)Mage::getStoreConfig('schumacherfm/fastindexer/enable') === 1;
+        return Mage::getStoreConfigFlag('system/fastindexer/enable');
     }
 
     /**
@@ -27,7 +28,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function dropOldTable()
     {
-        return (int)Mage::getStoreConfig('schumacherfm/fastindexer/dropOldTable') === 1;
+        return Mage::getStoreConfigFlag('system/fastindexer/dropOldTable');
     }
 
     /**
@@ -35,7 +36,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function isEcho()
     {
-        return (int)Mage::getStoreConfig('schumacherfm/fastindexer/echo') === 1;
+        return Mage::getStoreConfigFlag('system/fastindexer/echo');
     }
 
     /**
