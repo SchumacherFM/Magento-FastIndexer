@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
@@ -8,11 +9,10 @@
  */
 class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
-
     /**
      * @var array
      */
-    protected $_createdTables = NULL;
+    protected $_createdTables = null;
 
     /**
      * @var string
@@ -31,13 +31,14 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function createTable(Varien_Event_Observer $event)
     {
-        if (!$this->_runsOnCommandLine() || !Mage::helper('schumacherfm_fastindexer')->isEnabled()) { // run only in shell
-            return TRUE;
+        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) { // run only in shell
+            return null;
         }
 
         $this->_setOriginalTableName($event->getEvent()->getTableName());
 
         if ($this->_isIndexTable() || $this->_isFlatTable()) {
+
             /** @var Mage_Core_Model_Resource _resource */
             $this->_resource = $event->getEvent()->getResource();
             /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
@@ -64,7 +65,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _setTempTableName()
     {
-        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== FALSE) {
+        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== false) {
             $this->_tempTableName = $this->_originalTableName;
         }
         $this->_tempTableName = self::FINDEX_TBL_PREFIX . $this->_originalTableName;
@@ -92,8 +93,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
 
         if ($this->_isIndexTable() && !$this->_existsTempTableInDb()) {
-            $this->_connection->raw_query(
-                '/*disable _checkDdlTransaction*/ CREATE TABLE `' . $this->_tempTableName . '` like `' . $this->_originalTableName . '`'
+            $this->_rawQuery(
+                self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE `' . $this->_tempTableName . '` LIKE `' . $this->_originalTableName . '`'
             );
         }
 
@@ -124,7 +125,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         if ($this->_createdTables === null) {
             $this->_createdTables = array();
             /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-            $stmt   = $this->_connection->query('SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
+            $stmt   = $this->_getConnection()->query('SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
             $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($tables as $table) {
                 $tn                        = reset($table);
@@ -140,9 +141,9 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _isIndexTable()
     {
         return
-            strpos($this->_originalTableName, '_index') > 2 ||
-            strpos($this->_originalTableName, '_idx') > 2 ||
-            strstr($this->_originalTableName, 'core_url_rewrite') !== FALSE;
+            strpos($this->_originalTableName, '_index') !== false ||
+            strpos($this->_originalTableName, '_idx') !== false ||
+            strstr($this->_originalTableName, 'core_url_rewrite') !== false;
     }
 
     /**
@@ -151,8 +152,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _isFlatTable()
     {
         return
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== FALSE ||
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== FALSE;
+            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== false ||
+            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== false;
     }
 
     /**
@@ -173,5 +174,4 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_createdTables = null;
         return $this;
     }
-
 }

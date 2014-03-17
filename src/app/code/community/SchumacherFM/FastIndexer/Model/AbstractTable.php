@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
@@ -10,6 +11,8 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
     const FINDEX_TBL_PREFIX = 'afstidex_';
 
+    const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
+
     /**
      * @var Mage_Core_Model_Resource
      */
@@ -20,7 +23,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected $_connection = null;
 
-    protected $_isEchoOn = FALSE;
+    protected $_isEchoOn = false;
 
     /**
      * @return Varien_Db_Adapter_Pdo_Mysql
@@ -49,23 +52,23 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _getResource()
     {
-        return $this->_resource;;
+        return $this->_resource;
     }
 
     /**
-     * exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 1005 Can't create table 'stoeckli-11-snapshot-local.afstidex_catalog_product_flat_5' (errno: 121)' in /Volumes/unic/www/stoeckli-dev/
+     * exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 1005 Can't create table 'dbname.afstidex_catalog_product_flat_5' (errno: 121)'
      * @todo bug: before the temp flat table will be created change the original index names
      *       use event: catalog_product_flat_prepare_indexes this applies only for products ... not for categories ...
      *       have to find another solution
      *
      * restores the original name of the foreign key
+     * FIRST drop the original table AND THEN rename the indexes
      *
      * @param string $_originalTableName
-     * @param string $addOrRemoveTablePrefixToKey
      *
      * @return $this
      */
-    protected function _restoreTableKeys($_originalTableName, $addOrRemoveTablePrefixToKey = '+')
+    protected function _restoreTableKeys($_originalTableName)
     {
         $_originalFks = $this->_getConnection()->getForeignKeys($_originalTableName);
 
@@ -74,13 +77,13 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
             // drop and create of a FK only possible in ONE statement = RENAME
             $sqlFk = array();
             foreach ($_originalFks as $_fk) {
-                if ($this->_isEchoOn === TRUE) {
+                if ($this->_isEchoOn === true) {
                     echo 'Drop FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
                 }
                 $sqlFk[] = 'DROP FOREIGN KEY ' . $this->_quote($_fk['FK_NAME']);
 
                 $originalFkName = $this->_removeTablePrefix($_fk['FK_NAME']);
-                if ($this->_isEchoOn === TRUE) {
+                if ($this->_isEchoOn === true) {
                     echo 'Add FK: ' . $_originalTableName . ' -> ' . $originalFkName . PHP_EOL;
                 }
 
@@ -100,8 +103,8 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 
                 $sqlFk[] = $query;
             }
-            $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlFk);
-            $this->_getConnection()->raw_query($sql);
+            $sql = '/*disable*/ ALTER TABLE ' . $this->_getTableName($_originalTableName) . ' ' . implode(',', $sqlFk);
+            $this->_rawQuery($sql);
         }
 
         $_originalIndexList = $this->_getIndexList($_originalTableName);
@@ -110,13 +113,13 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
             // drop and create of an index only possible in ONE statement = RENAME
             $sqlIndex = array();
             foreach ($_originalIndexList as $_key) {
-                if ($this->_isEchoOn === TRUE) {
+                if ($this->_isEchoOn === true) {
                     echo 'Drop IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
                 }
                 $sqlIndex[] = 'DROP INDEX ' . $this->_quote($_key['KEY_NAME']);
 
                 $originalIdxName = $this->_removeTablePrefix($_key['KEY_NAME']);
-                if ($this->_isEchoOn === TRUE) {
+                if ($this->_isEchoOn === true) {
                     echo 'Add IDX: ' . $_originalTableName . ' -> ' . $originalIdxName . PHP_EOL;
                 }
 
@@ -138,32 +141,10 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
                 $sqlIndex[] = sprintf('ADD %s (%s)', $condition, implode(',', $_key['COLUMNS_LIST']));
             }
             $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlIndex);
-            $this->_getConnection()->raw_query($sql);
+            $this->_rawQuery($sql);
         }
 
         return $this;
-    }
-
-    /**
-     * index names are always upper case
-     *
-     * @param $string
-     *
-     * @return mixed
-     */
-    protected function _removeTablePrefix($string)
-    {
-        return str_replace(strtoupper(self::FINDEX_TBL_PREFIX), '', $string);
-    }
-
-    /**
-     * @param string $string
-     *
-     * @return string
-     */
-    protected function _quote($string)
-    {
-        return $this->_getConnection()->quoteIdentifier($string);
     }
 
     /**
@@ -190,7 +171,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _getColumnsFromTable($tableName)
     {
         /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt          = $this->_getConnection()->query('SHOW COLUMNS FROM `' . $tableName . '`');
+        $stmt          = $this->_getConnection()->query('SHOW COLUMNS FROM ' . $this->_getTableName($tableName));
         $columnsResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $columns       = array();
         foreach ($columnsResult as $col) {
@@ -209,7 +190,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _getTableCount($tableName)
     {
         /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt    = $this->_getConnection()->query('SELECT COUNT(*) as counted from `' . $tableName . '`');
+        $stmt    = $this->_getConnection()->query('SELECT COUNT(*) AS counted FROM ' . $this->_getTableName($tableName));
         $counter = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return isset($counter[0]) ? (int)$counter[0]['counted'] : 0;
     }
@@ -221,9 +202,49 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _dropTable($tableName)
     {
-        if (Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE) {
-            $this->_getConnection()->dropTable($tableName);
-        }
+        $this->_rawQuery('DROP TABLE IF EXISTS ' . $this->_getTableName($tableName));
     }
 
+    /**
+     * @param string $tableName
+     *
+     * @return string
+     */
+    protected function _getTableName($tableName)
+    {
+        return $this->_quote($tableName);
+    }
+
+    /**
+     * @param string $sql
+     *
+     * @return Zend_Db_Statement_Interface
+     */
+    protected function _rawQuery($sql)
+    {
+        Mage::log($sql, null, 'findexer.log');
+        return $this->_getConnection()->raw_query($sql);
+    }
+
+    /**
+     * index names are always upper case
+     *
+     * @param $string
+     *
+     * @return mixed
+     */
+    protected function _removeTablePrefix($string)
+    {
+        return str_replace(strtoupper(self::FINDEX_TBL_PREFIX), '', $string);
+    }
+
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
+    protected function _quote($string)
+    {
+        return $this->_getConnection()->quoteIdentifier($string);
+    }
 }

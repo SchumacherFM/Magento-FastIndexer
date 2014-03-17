@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?xml version="1.0"?><!--
  /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
@@ -40,106 +39,114 @@
         <events>
             <resource_get_tablename>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
                         <method>createTable</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </resource_get_tablename>
 
             <after_reindex_process_catalog_product_attribute>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_product_attribute>
+
             <after_reindex_process_catalog_product_price>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_product_price>
+
             <after_reindex_process_catalog_url>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_url>
+
             <after_reindex_process_catalog_product_flat>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_product_flat>
+
             <after_reindex_process_catalog_category_flat>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_category_flat>
+
             <after_reindex_process_catalog_category_product>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_category_product>
+
             <after_reindex_process_catalogsearch_fulltext>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalogsearch_fulltext>
+
             <after_reindex_process_cataloginventory_stock>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_cataloginventory_stock>
+
             <after_reindex_process_catalogpermissions>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalogpermissions>
+
             <after_reindex_process_targetrule>
                 <observers>
-                    <unic_fastindexer>
+                    <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
                         <method>rollbackTables</method>
-                    </unic_fastindexer>
+                    </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_targetrule>
         </events>
-
     </global>
 
     <default>
@@ -151,6 +158,4 @@
             </fastindexer>
         </schumacherfm>
     </default>
-
-
 </config>

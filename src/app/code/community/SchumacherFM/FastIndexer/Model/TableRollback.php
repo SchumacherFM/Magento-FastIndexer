@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
@@ -22,7 +23,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $tablesToRename  = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
 
         if (empty($tablesToRename)) {
-            return FALSE;
+            return false;
         }
 
         foreach ($tablesToRename as $_tempTableName => $_originalTableName) {
@@ -32,15 +33,11 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             }
             try {
                 $oldTableNewName = $this->_renameTable($_originalTableName, $_tempTableName);
+                $this->_dropTable($oldTableNewName);
+
                 $this->_restoreTableKeys($_originalTableName);
 
-                if ($this->_isEchoOn === TRUE) {
-                    echo $this->_formatLine($oldTableNewName, $this->_getTableCount($_originalTableName));
-                    echo $this->_formatLine($_originalTableName, $this->_getTableCount($_originalTableName));
-                    flush();
-                }
                 $this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
-                $this->_dropTable($oldTableNewName);
 
                 // reset table names
                 $this->_getResource()->setMappedTableName($_originalTableName, $_originalTableName);
@@ -66,20 +63,20 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
          * now the custom rewrites will be lost ...
          *
          * SOLUTION but ...
-
-
-        create table `core_url_rewrite_bkp` like `core_url_rewrite`;
-        insert into `core_url_rewrite_bkp` select * from `core_url_rewrite`;
-        truncate table `core_url_rewrite`;
-        -- getting custom rewrites resp. redirects
-        insert into `core_url_rewrite` (`store_id` ,  `id_path` ,  `request_path` ,  `target_path` ,  `is_system` ,  `options` ,  `description` ,
-        `category_id` ,  `product_id` )
-        SELECT `store_id` ,  `id_path` ,  `request_path` ,  `target_path` ,  `is_system` ,  `options` ,  `description` ,  `category_id` ,
-        `product_id`  FROM `core_url_rewrite_bkp` where is_system=0 and id_path not like '%|_%' ESCAPE '|' order by `store_id`,`id_path`;
-        select 'now reindex the rewrites';
+         *
+         *
+         * create table `core_url_rewrite_bkp` like `core_url_rewrite`;
+         * insert into `core_url_rewrite_bkp` select * from `core_url_rewrite`;
+         * truncate table `core_url_rewrite`;
+         * -- getting custom rewrites resp. redirects
+         * insert into `core_url_rewrite` (`store_id` ,  `id_path` ,  `request_path` ,  `target_path` ,  `is_system` ,  `options` ,  `description` ,
+         * `category_id` ,  `product_id` )
+         * SELECT `store_id` ,  `id_path` ,  `request_path` ,  `target_path` ,  `is_system` ,  `options` ,  `description` ,  `category_id` ,
+         * `product_id`  FROM `core_url_rewrite_bkp` where is_system=0 and id_path not like '%|_%' ESCAPE '|' order by `store_id`,`id_path`;
+         * select 'now reindex the rewrites';
 
          */
-        return TRUE;
+        return true;
 
         /**
          * this query could be the solution:
@@ -87,15 +84,15 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
          * these entries are rewrites for old names
          */
 
-        if (strstr($this->_getResource()->getTableName('core/url_rewrite'), $currentTableName) === FALSE) {
-            return FALSE;
+        if (strstr($this->_getResource()->getTableName('core/url_rewrite'), $currentTableName) === false) {
+            return false;
         }
         $columns = $this->_getColumnsFromTable($currentTableName);
 
         // maybe use insertFromSelect() ...
         $this->_getConnection()->query('INSERT INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
             SELECT ' . implode(',', $columns) . ' FROM `' . $oldExistingTable . '` WHERE `is_system`=0');
-        return TRUE;
+        return true;
     }
 
     /**
@@ -108,10 +105,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     protected function _renameTable($oldTable, $newTable)
     {
-        $oldTableNewName = $oldTable;
-        $oldTableNewName .= Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE
-            ? '_old'
-            : date('mdHi');
+        $oldTableNewName = $oldTable . '_old';
 
         $tables = array();
         if ($this->_getConnection()->isTableExists($oldTable)) {
@@ -119,8 +113,8 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         }
         $tables[] = $this->_sqlRenameTo($newTable, $oldTable);
 
-        $sql = '/*disable _checkDdlTransaction*/ RENAME TABLE ' . implode(',', $tables);
-        $this->_getConnection()->raw_query($sql);
+        $sql = self::DISABLE_CHECKDDLTRANSACTION . 'RENAME TABLE ' . implode(',', $tables);
+        $this->_rawQuery($sql);
         return $oldTableNewName;
     }
 
@@ -143,7 +137,6 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     protected function  _sqlRenameTo($oldName, $newName)
     {
-        return '`' . $oldName . '` TO `' . $newName . '`';
+        return $this->_getTableName($oldName) . ' TO ' . $this->_getTableName($newName);
     }
-
 }
