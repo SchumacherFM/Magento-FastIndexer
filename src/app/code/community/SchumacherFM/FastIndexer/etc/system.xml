@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!--
+<?xml version="1.0"?><!--
  /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
@@ -47,6 +46,15 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </echo>
+                        <dbName translate="label">
+                            <label>Shadow Database Name</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Database must exists and current MySQL user must have permissions for create, alter, index and drop</comment>
+                        </dbName>
                     </fields>
                 </fastindexer>
             </groups>

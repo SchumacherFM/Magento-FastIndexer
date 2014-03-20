@@ -119,17 +119,6 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     }
 
     /**
-     * @param string $tableName
-     * @param int    $counter
-     *
-     * @return string
-     */
-    protected function _formatLine($tableName, $counter)
-    {
-        return str_pad($tableName, 50, '_', STR_PAD_RIGHT) . ' ' . $counter . PHP_EOL;
-    }
-
-    /**
      * @param string $oldName
      * @param string $newName
      *

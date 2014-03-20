@@ -93,12 +93,13 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
 
         if ($this->_isIndexTable() && !$this->_existsTempTableInDb()) {
-            $this->_rawQuery(
-                self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE `' . $this->_tempTableName . '` LIKE `' . $this->_originalTableName . '`'
-            );
+            $sql =
+                self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getDbName() . '.' . $this->_quote($this->_tempTableName) .
+                ' LIKE ' . $this->_quote($this->_originalTableName);
+            $this->_rawQuery($sql);
         }
 
-        $this->_setMapper($this->_originalTableName, $this->_tempTableName);
+        $this->_setMapper($this->_originalTableName, $this->_getDbName(false) . '.' . $this->_tempTableName);
         // create "virtual" entries ...
         if (!empty($tableSuffix)) {
             $this->_setMapper($this->_originalTableName . '_' . $tableSuffix, $this->_tempTableName . '_' . $tableSuffix);
@@ -122,10 +123,12 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _existsTempTableInDb()
     {
+        return false;
+        // we have to use here a custom connection
         if ($this->_createdTables === null) {
             $this->_createdTables = array();
             /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-            $stmt   = $this->_getConnection()->query('SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
+            $stmt   = $this->_getConnection()->query('USE ' . $this->_getDbName() . '; SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
             $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($tables as $table) {
                 $tn                        = reset($table);

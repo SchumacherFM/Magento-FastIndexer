@@ -153,8 +153,9 @@
         <schumacherfm>
             <fastindexer>
                 <enable>0</enable>
-                <dropOldTable>1</dropOldTable>
                 <echo>0</echo>
+                <dropOldTable>0</dropOldTable>
+                <dbName>test</dbName>
             </fastindexer>
         </schumacherfm>
     </default>

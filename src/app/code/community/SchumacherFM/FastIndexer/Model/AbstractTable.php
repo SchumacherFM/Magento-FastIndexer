@@ -24,6 +24,23 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected $_connection = null;
 
     protected $_isEchoOn = false;
+    protected $_dbName = null;
+
+    /**
+     * @param bool $quote
+     *
+     * @return string
+     */
+    protected function _getDbName($quote = true)
+    {
+        if (null === $this->_dbName) {
+            $this->_dbName = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
+        }
+        if (true === $quote) {
+            return $this->_quote($this->_dbName);
+        }
+        return $this->_dbName;
+    }
 
     /**
      * @return Varien_Db_Adapter_Pdo_Mysql
