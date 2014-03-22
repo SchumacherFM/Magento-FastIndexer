@@ -23,31 +23,56 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $tablesToRename  = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
 
         if (empty($tablesToRename)) {
-            return false;
+            return null;
         }
 
-        foreach ($tablesToRename as $_tempTableName => $_originalTableName) {
+        foreach ($tablesToRename as $_originalTableName) {
 
             if (Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($_originalTableName)) {
                 continue;
             }
             try {
-                $oldTableNewName = $this->_renameTable($_originalTableName, $_tempTableName);
-                $this->_dropTable($oldTableNewName);
+                $oldTableNewName = $this->_renameTable($_originalTableName);
+                //$this->_dropTable($oldTableNewName);
 
-                $this->_restoreTableKeys($_originalTableName);
-
-                $this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
+                //$this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
 
                 // reset table names
                 $this->_getResource()->setMappedTableName($_originalTableName, $_originalTableName);
             } catch (Exception $e) {
-                echo 'Please see exception log!' . PHP_EOL;
+                if (true === $this->_isEchoOn) {
+                    echo 'Please see exception log!' . PHP_EOL;
+                }
                 Mage::logException($e);
             }
         }
         // due to singleton pattern ... reset Tables
         Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->unsetTables();
+        return null;
+    }
+
+    protected function _renameTable($tableName)
+    {
+        $tables = array();
+        // from shadow db to default db new
+        $tables[] = $this->_sqlRenameTo($this->_getShadowDbName(true) . '.' . $this->_quote($tableName), $this->_quote($tableName . '_new'));
+        // from default db to shadow db
+        $tables[] = $this->_sqlRenameTo($this->_quote($tableName), $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
+        // from default db new to default db
+        $tables[] = $this->_sqlRenameTo($this->_quote($tableName. '_new') , $this->_quote($tableName));
+        $sql = self::DISABLE_CHECKDDLTRANSACTION . 'RENAME TABLE ' . implode(',', $tables);
+        return $this->_rawQuery($sql);
+    }
+
+    /**
+     * @param string $oldName
+     * @param string $newName
+     *
+     * @return string
+     */
+    private function _sqlRenameTo($oldName, $newName)
+    {
+        return $oldName . ' TO ' . $newName;
     }
 
     /**
@@ -93,39 +118,5 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $this->_getConnection()->query('INSERT INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
             SELECT ' . implode(',', $columns) . ' FROM `' . $oldExistingTable . '` WHERE `is_system`=0');
         return true;
-    }
-
-    /**
-     * That's the magic ;-)
-     *
-     * @param string $oldTable
-     * @param string $newTable
-     *
-     * @return string
-     */
-    protected function _renameTable($oldTable, $newTable)
-    {
-        $oldTableNewName = $oldTable . '_old';
-
-        $tables = array();
-        if ($this->_getConnection()->isTableExists($oldTable)) {
-            $tables[] = $this->_sqlRenameTo($oldTable, $oldTableNewName);
-        }
-        $tables[] = $this->_sqlRenameTo($newTable, $oldTable);
-
-        $sql = self::DISABLE_CHECKDDLTRANSACTION . 'RENAME TABLE ' . implode(',', $tables);
-        $this->_rawQuery($sql);
-        return $oldTableNewName;
-    }
-
-    /**
-     * @param string $oldName
-     * @param string $newName
-     *
-     * @return string
-     */
-    protected function  _sqlRenameTo($oldName, $newName)
-    {
-        return $this->_getTableName($oldName) . ' TO ' . $this->_getTableName($newName);
     }
 }

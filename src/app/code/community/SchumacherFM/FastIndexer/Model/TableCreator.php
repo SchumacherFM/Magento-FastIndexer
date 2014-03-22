@@ -12,17 +12,17 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     /**
      * @var array
      */
-    protected $_createdTables = null;
+    protected $_createdTables = array();
 
     /**
      * @var string
      */
-    protected $_originalTableName = '';
+    protected $_currentTableName = '';
 
     /**
      * @var string
      */
-    protected $_tempTableName = '';
+    protected $_currentTableSuffix = '';
 
     /**
      * @param Varien_Event_Observer $event
@@ -31,11 +31,12 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function createTable(Varien_Event_Observer $event)
     {
-        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) { // run only in shell
+        // run only in shell and maybe later also via backend
+        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
-
-        $this->_setOriginalTableName($event->getEvent()->getTableName());
+        $this->_currentTableName   = $event->getEvent()->getTableName();
+        $this->_currentTableSuffix = $event->getEvent()->getTableSuffix();
 
         if ($this->_isIndexTable() || $this->_isFlatTable()) {
 
@@ -44,98 +45,69 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
             /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
             $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
 
-            $this->_setTempTableName()->_createTempTable($event->getEvent()->getTableSuffix());
+            // table suffix is needed for the flat tables to append _[0-9]
+            $this->_createShadowTable();
         }
     }
 
     /**
-     * @param string $table
+     * @param bool $withSuffix
+     * @param bool $quote
      *
-     * @return $this
+     * @return string
      */
-    protected function _setOriginalTableName($table)
+    protected function _getCurrentTableName($withSuffix = true, $quote = false)
     {
-        $this->_originalTableName = $table;
-        $this->_originalTableName = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_originalTableName);
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    protected function _setTempTableName()
-    {
-        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== false) {
-            $this->_tempTableName = $this->_originalTableName;
+        $return = $this->_currentTableName .
+            (true === $withSuffix && false === empty($this->_currentTableSuffix)
+                ? '_' . $this->_currentTableSuffix
+                : '');
+        if (true === $quote) {
+            return $this->_quote($return);
         }
-        $this->_tempTableName = self::FINDEX_TBL_PREFIX . $this->_originalTableName;
-        return $this;
+        return $return;
     }
 
     /**
-     * @return bool
-     */
-    protected function _runsOnCommandLine()
-    {
-        return isset($_SERVER['argv']) && (int)$_SERVER['argc'] > 0;
-    }
-
-    /**
-     * @param string $tableSuffix
-     *
+     * this needs to be execute in another DB because index names are unique within a DB and if the create the shadow tables
+     * within the same db as magento then the index names are different
      * @return $this
-     * @throws Exception
      */
-    protected function _createTempTable($tableSuffix = '')
+    protected function _createShadowTable()
     {
-        if (empty($this->_tempTableName)) {
-            throw new Exception('fastindexer: $this->_tempTableName is empty!');
-        }
-
-        if ($this->_isIndexTable() && !$this->_existsTempTableInDb()) {
-            $sql =
-                self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getDbName() . '.' . $this->_quote($this->_tempTableName) .
-                ' LIKE ' . $this->_quote($this->_originalTableName);
+        if ($this->_isIndexTable() && !$this->_existsTableInShadowDb()) {
+            $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+                ' LIKE ' . $this->_quote($this->_currentTableName);
             $this->_rawQuery($sql);
         }
 
-        $this->_setMapper($this->_originalTableName, $this->_getDbName(false) . '.' . $this->_tempTableName);
-        // create "virtual" entries ...
-        if (!empty($tableSuffix)) {
-            $this->_setMapper($this->_originalTableName . '_' . $tableSuffix, $this->_tempTableName . '_' . $tableSuffix);
-        }
-
+        $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
         return $this;
     }
 
     /**
      * @param string $_originalTableName
-     * @param string $_tempTableName
+     * @param string $_shadowTableName
      */
-    protected function _setMapper($_originalTableName, $_tempTableName)
+    protected function _setMapper($_originalTableName, $_shadowTableName)
     {
-        $this->_resource->setMappedTableName($_originalTableName, $_tempTableName);
-        $this->_createdTables[$_tempTableName] = $_originalTableName;
+        $this->_resource->setMappedTableName($_originalTableName, $_shadowTableName);
+        $this->_createdTables[] = $_originalTableName;
     }
 
     /**
      * @return bool
      */
-    protected function _existsTempTableInDb()
+    protected function _existsTableInShadowDb()
     {
-        return false;
-        // we have to use here a custom connection
-        if ($this->_createdTables === null) {
-            $this->_createdTables = array();
-            /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-            $stmt   = $this->_getConnection()->query('USE ' . $this->_getDbName() . '; SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
-            $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($tables as $table) {
-                $tn                        = reset($table);
-                $this->_createdTables[$tn] = str_replace(self::FINDEX_TBL_PREFIX, '', $tn);
-            }
+        // could also be the shadowConnection
+        $exists = $this->_getConnection()->isTableExists($this->_getCurrentTableName(), $this->_getShadowDbName());
+        if (true === $exists) {
+            // truncate shadow table
+            $this->_getConnection()->dropTable($this->_getCurrentTableName(), $this->_getShadowDbName());
+            $exists = false;
         }
-        return isset($this->_createdTables[$this->_tempTableName]);
+        return $exists;
     }
 
     /**
@@ -144,9 +116,10 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _isIndexTable()
     {
         return
-            strpos($this->_originalTableName, '_index') !== false ||
-            strpos($this->_originalTableName, '_idx') !== false ||
-            strstr($this->_originalTableName, 'core_url_rewrite') !== false;
+            strpos($this->_currentTableName, '_index') !== false ||
+            strpos($this->_currentTableName, '_idx') !== false ||
+            strpos($this->_currentTableName, 'catalogsearch_fulltext') !== false ||
+            strstr($this->_currentTableName, 'core_url_rewrite') !== false;
     }
 
     /**
@@ -155,11 +128,13 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _isFlatTable()
     {
         return
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== false ||
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== false;
+            strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== false ||
+            strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== false;
     }
 
     /**
+     * will be called from tableRollBack class
+     *
      * @return array|null
      */
     public function getTables()
@@ -174,7 +149,15 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function unsetTables()
     {
-        $this->_createdTables = null;
+        $this->_createdTables = array();
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function _runsOnCommandLine()
+    {
+        return isset($_SERVER['argv']) && isset($_SERVER['argc']) && (int)$_SERVER['argc'] > 0;
     }
 }

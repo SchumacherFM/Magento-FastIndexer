@@ -9,7 +9,6 @@
  */
 abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
-    const FINDEX_TBL_PREFIX = 'afstidex_';
 
     const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
@@ -23,23 +22,28 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected $_connection = null;
 
+    /**
+     * @var Varien_Db_Adapter_Pdo_Mysql
+     */
+    protected $_shadowConnection = null;
+
     protected $_isEchoOn = false;
-    protected $_dbName = null;
+    protected $_shadowDbName = null;
 
     /**
      * @param bool $quote
      *
      * @return string
      */
-    protected function _getDbName($quote = true)
+    protected function _getShadowDbName($quote = false)
     {
-        if (null === $this->_dbName) {
-            $this->_dbName = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
+        if (null === $this->_shadowDbName) {
+            $this->_shadowDbName = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
         }
         if (true === $quote) {
-            return $this->_quote($this->_dbName);
+            return $this->_quote($this->_shadowDbName);
         }
-        return $this->_dbName;
+        return $this->_shadowDbName;
     }
 
     /**
@@ -51,6 +55,32 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
             $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE);
         }
         return $this->_connection;
+    }
+
+    /**
+     * we also could use information_schema ... but does everybody have access to that special db?
+     * so lets create a second connection to the shadow DB just for getting all the tables within that db.
+     * we're creating the necessary xml config elements on the fly. same access credentials but different DB
+     *
+     * @return Varien_Db_Adapter_Pdo_Mysql
+     */
+    protected function _getShadowConnection()
+    {
+        $shadowName = 'findexer_write';
+        if ($this->_shadowConnection === null) {
+            $nodePrefix     = 'global/resources/' . $shadowName . '/connection/';
+            $shadowDb       = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
+            $connectDefault = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
+            if (empty($shadowDb) || $shadowDb === (string)$connectDefault->dbname) {
+                Mage::throwException('ShadowDB Name (' . $shadowDb . ') must be different than Magentos DB name: ' . (string)$connectDefault->dbname);
+            }
+            $connectDefault->dbname = $shadowDb;
+            foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
+                Mage::getConfig()->setNode($nodePrefix . $nodeName, $nodeValue);
+            }
+            $this->_shadowConnection = $this->_getResource()->getConnection($shadowName);
+        }
+        return $this->_shadowConnection;
     }
 
     /**
@@ -70,112 +100,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _getResource()
     {
         return $this->_resource;
-    }
-
-    /**
-     * exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 1005 Can't create table 'dbname.afstidex_catalog_product_flat_5' (errno: 121)'
-     * @todo bug: before the temp flat table will be created change the original index names
-     *       use event: catalog_product_flat_prepare_indexes this applies only for products ... not for categories ...
-     *       have to find another solution
-     *
-     * restores the original name of the foreign key
-     * FIRST drop the original table AND THEN rename the indexes
-     *
-     * @param string $_originalTableName
-     *
-     * @return $this
-     */
-    protected function _restoreTableKeys($_originalTableName)
-    {
-        $_originalFks = $this->_getConnection()->getForeignKeys($_originalTableName);
-
-        if (count($_originalFks) > 0) {
-            // because key name contains: FINDEX_TBL_PREFIX
-            // drop and create of a FK only possible in ONE statement = RENAME
-            $sqlFk = array();
-            foreach ($_originalFks as $_fk) {
-                if ($this->_isEchoOn === true) {
-                    echo 'Drop FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
-                }
-                $sqlFk[] = 'DROP FOREIGN KEY ' . $this->_quote($_fk['FK_NAME']);
-
-                $originalFkName = $this->_removeTablePrefix($_fk['FK_NAME']);
-                if ($this->_isEchoOn === true) {
-                    echo 'Add FK: ' . $_originalTableName . ' -> ' . $originalFkName . PHP_EOL;
-                }
-
-                $query = sprintf('ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)',
-                    $this->_quote($originalFkName),
-                    $this->_quote($_fk['COLUMN_NAME']),
-                    $this->_quote($_fk['REF_TABLE_NAME']),
-                    $this->_quote($_fk['REF_COLUMN_NAME'])
-                );
-
-                if (!empty($_fk['ON_DELETE'])) {
-                    $query .= ' ON DELETE ' . strtoupper($_fk['ON_DELETE']);
-                }
-                if (!empty($_fk['ON_UPDATE'])) {
-                    $query .= ' ON UPDATE ' . strtoupper($_fk['ON_UPDATE']);
-                }
-
-                $sqlFk[] = $query;
-            }
-            $sql = '/*disable*/ ALTER TABLE ' . $this->_getTableName($_originalTableName) . ' ' . implode(',', $sqlFk);
-            $this->_rawQuery($sql);
-        }
-
-        $_originalIndexList = $this->_getIndexList($_originalTableName);
-
-        if (count($_originalIndexList) > 0) {
-            // drop and create of an index only possible in ONE statement = RENAME
-            $sqlIndex = array();
-            foreach ($_originalIndexList as $_key) {
-                if ($this->_isEchoOn === true) {
-                    echo 'Drop IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
-                }
-                $sqlIndex[] = 'DROP INDEX ' . $this->_quote($_key['KEY_NAME']);
-
-                $originalIdxName = $this->_removeTablePrefix($_key['KEY_NAME']);
-                if ($this->_isEchoOn === true) {
-                    echo 'Add IDX: ' . $_originalTableName . ' -> ' . $originalIdxName . PHP_EOL;
-                }
-
-                switch (strtolower($_key['INDEX_TYPE'])) {
-                    case Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE:
-                        $condition = 'UNIQUE ' . $this->_quote($originalIdxName);
-                        break;
-                    case Varien_Db_Adapter_Interface::INDEX_TYPE_FULLTEXT:
-                        $condition = 'FULLTEXT ' . $this->_quote($originalIdxName);
-                        break;
-                    default:
-                        $condition = 'INDEX ' . $this->_quote($originalIdxName);
-                        break;
-                }
-
-                foreach ($_key['COLUMNS_LIST'] as $k => $v) {
-                    $_key['COLUMNS_LIST'][$k] = $this->_quote($v);
-                }
-                $sqlIndex[] = sprintf('ADD %s (%s)', $condition, implode(',', $_key['COLUMNS_LIST']));
-            }
-            $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlIndex);
-            $this->_rawQuery($sql);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return array
-     */
-    protected function _getIndexList($tableName)
-    {
-        $index = $this->_getConnection()->getIndexList($tableName);
-        if (isset($index['PRIMARY'])) {
-            unset($index['PRIMARY']);
-        }
-        return $index;
     }
 
     /**
@@ -233,26 +157,16 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @param string $sql
+     * @param string  $sql
+     * @param boolean $isShadow
      *
      * @return Zend_Db_Statement_Interface
      */
-    protected function _rawQuery($sql)
+    protected function _rawQuery($sql, $isShadow = false)
     {
         Mage::log($sql, null, 'findexer.log');
-        return $this->_getConnection()->raw_query($sql);
-    }
-
-    /**
-     * index names are always upper case
-     *
-     * @param $string
-     *
-     * @return mixed
-     */
-    protected function _removeTablePrefix($string)
-    {
-        return str_replace(strtoupper(self::FINDEX_TBL_PREFIX), '', $string);
+        $method = true === $isShadow ? '_getShadowConnection' : '_getConnection';
+        return $this->$method()->raw_query($sql);
     }
 
     /**
