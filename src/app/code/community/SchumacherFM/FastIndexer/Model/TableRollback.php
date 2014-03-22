@@ -51,15 +51,23 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         return null;
     }
 
+    /**
+     * @param $tableName
+     *
+     * @return Zend_Db_Statement_Interface
+     */
     protected function _renameTable($tableName)
     {
         $tables = array();
         // from shadow db to default db new
         $tables[] = $this->_sqlRenameTo($this->_getShadowDbName(true) . '.' . $this->_quote($tableName), $this->_quote($tableName . '_new'));
         // from default db to shadow db
-        $tables[] = $this->_sqlRenameTo($this->_quote($tableName), $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
+        $tables[] = $this->_sqlRenameTo($this->_quote($tableName), $this->_quote($tableName . '_old'));
         // from default db new to default db
-        $tables[] = $this->_sqlRenameTo($this->_quote($tableName. '_new') , $this->_quote($tableName));
+        $tables[] = $this->_sqlRenameTo($this->_quote($tableName . '_new'), $this->_quote($tableName));
+        // move the old table to the shadow db
+        $tables[] = $this->_sqlRenameTo($this->_quote($tableName . '_old'), $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
+
         $sql = self::DISABLE_CHECKDDLTRANSACTION . 'RENAME TABLE ' . implode(',', $tables);
         return $this->_rawQuery($sql);
     }
