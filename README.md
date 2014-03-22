@@ -1,9 +1,9 @@
 FastIndexer
 ===========
 
-Makes indexing of your Magento store around x% faster!
+Integrates seamlessly into the existing indexer process and even into your custom indexer process (theoretically).
 
-Install (via modman)
+Makes indexing of your Magento store around x% faster!
 
 Go to backend -> System -> Configuration -> Advanced -> @SchumacherFM -> FastIndexer and enable there the FastIndexer
 
@@ -13,7 +13,6 @@ $ cd magento-site-folder
 $ cd shell
 $ php -f index.php reindexall
 ```
-
 
 What it does?
 -------------
@@ -33,8 +32,6 @@ Compatibility
 -------------
 - Magento >= 1.x Every version which has the event resource_get_tablename implemented
 - php >= 5.2.0
-
-I'm using http://php-osx.liip.ch/ with version 5.4.10 and 5.3.19.
 
 It could run with Magento < 1.5 but still not tested.
 
