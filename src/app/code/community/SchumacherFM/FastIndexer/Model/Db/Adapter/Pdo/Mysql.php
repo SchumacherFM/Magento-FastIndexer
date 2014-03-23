@@ -84,4 +84,29 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
             $refColumnName
         );
     }
+
+    /**
+     * Bugfix
+     * Retrieve Create Table SQL
+     *
+     * @param string $tableName
+     * @param string $schemaName
+     *
+     * @return string
+     */
+    public function getCreateTable($tableName, $schemaName = null)
+    {
+        Zend_Debug::dump(['It works!', $tableName, $schemaName]);
+        exit;
+
+        $cacheKey = $this->_getTableName($tableName, $schemaName);
+        $ddl      = $this->loadDdlCache($cacheKey, self::DDL_CREATE);
+        if ($ddl === false) {
+            $sql = 'SHOW CREATE TABLE ' . $this->quoteIdentifier($tableName);
+            $ddl = $this->raw_fetchRow($sql, 'Create Table');
+            $this->saveDdlCache($cacheKey, self::DDL_CREATE, $ddl);
+        }
+
+        return $ddl;
+    }
 }

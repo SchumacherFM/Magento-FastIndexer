@@ -9,6 +9,8 @@
  */
 abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
+    const CATALOG_RESOURCE_WRITE_NAME = 'catalog_write';
+
     /**
      * @see Varien_Db_Adapter_Pdo_Mysql::_checkDdlTransaction
      * I found that string under my foot nails.
@@ -21,9 +23,9 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected $_resource = null;
 
     /**
-     * @var Varien_Db_Adapter_Pdo_Mysql
+     * @var array
      */
-    protected $_connection = null;
+    protected $_connection = array();
 
     /**
      * @var boolean
@@ -74,14 +76,17 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
+     * @param string $type
+     *
      * @return Varien_Db_Adapter_Pdo_Mysql
      */
-    protected function _getConnection()
+    protected function _getConnection($type = null)
     {
-        if ($this->_connection === null) {
-            $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE);
+        $type = null === $type ? Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE : $type;
+        if (false === isset($this->_connection[$type])) {
+            $this->_connection[$type] = $this->_getResource()->getConnection($type);
         }
-        return $this->_connection;
+        return $this->_connection[$type];
     }
 
     /**

@@ -39,17 +39,16 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
         $this->_currentTableName   = $event->getEvent()->getTableName();
         $this->_currentTableSuffix = $event->getEvent()->getTableSuffix();
-        /** @var Mage_Core_Model_Resource _resource */
-        $this->_resource = $event->getEvent()->getResource();
+        $this->_setResource($event->getEvent()->getResource());
 
         if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
 
             if (true === $this->_isFlatTable()) {
-                $this->_initShadowResourcePdoModel('catalog_write');
+                $this->_initShadowResourcePdoModel(self::CATALOG_RESOURCE_WRITE_NAME);
             }
 
             /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
-            $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
+            $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
 
             // table suffix is needed for the flat tables to append _[0-9]
             $this->_createShadowTable();
@@ -122,7 +121,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _setMapper($_originalTableName, $_shadowTableName)
     {
-        return $this->_resource->setMappedTableName($_originalTableName, $_shadowTableName);
+        return $this->_getResource()->setMappedTableName($_originalTableName, $_shadowTableName);
     }
 
     /**

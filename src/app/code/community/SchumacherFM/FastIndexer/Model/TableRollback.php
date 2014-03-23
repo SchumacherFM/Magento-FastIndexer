@@ -27,6 +27,9 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
 
         foreach ($tablesToRename as $_originalTableData) {
 
+            if (true === Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($_originalTableData['t'])) {
+                $this->_initShadowResourcePdoModel('catalog_write');
+            }
             try {
                 $result = $this->_renameTable($_originalTableData);
 
@@ -56,9 +59,13 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         if (true === Mage::helper('schumacherfm_fastindexer')->dropOldTable()) {
             $this->_rawQuery(self::DISABLE_CHECKDDLTRANSACTION .
                 'DROP TABLE IF EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
-        }else{
+        } else {
             // remove all indexes and FK from shadow db1. BUGGGG
-            $foreignKeys = $this->_getConnection()->getForeignKeys($tableName,$this->_getShadowDbName(false,1));
+
+//            Zend_Debug::dump(get_class($this->_getConnection()));
+//            exit;
+
+            $foreignKeys = $this->_getConnection(self::CATALOG_RESOURCE_WRITE_NAME)->getForeignKeys($tableName, $this->_getShadowDbName(false, 1));
             Zend_Debug::dump($foreignKeys);
             exit;
         }
@@ -88,7 +95,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             );
         }
         $return['rename']  = $this->_sqlRenameRunQuery($tables);
-        $return['oldName'] = $tableName . $oldTable;
+        $return['oldName'] = $oldTable;
 
         return $return;
     }
