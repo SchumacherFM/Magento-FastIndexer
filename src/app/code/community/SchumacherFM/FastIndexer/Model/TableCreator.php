@@ -92,7 +92,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _setMapper($_originalTableName, $_shadowTableName)
     {
         $this->_resource->setMappedTableName($_originalTableName, $_shadowTableName);
-        $this->_createdTables[] = $_originalTableName;
+        $this->_createdTables[$_originalTableName] = $_originalTableName; // singleton
     }
 
     /**
@@ -101,16 +101,15 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _existsTableInShadowDb()
     {
         // could also be the shadowConnection
-        $exists = $this->_getConnection()->isTableExists($this->_getCurrentTableName(), $this->_getShadowDbName());
-        if (true === $exists) {
-            // truncate shadow table
-            $this->_getConnection()->dropTable($this->_getCurrentTableName(), $this->_getShadowDbName());
-            $exists = false;
-        }
-        return $exists;
+        return $this->_getConnection()->isTableExists($this->_getCurrentTableName(), $this->_getShadowDbName());
     }
 
     /**
+     * catalogsearch_fulltext can be removed because the indexer of catalogsearch_fulltext has a cleanIndex
+     * method in Mage_CatalogSearch_Model_Resource_Fulltext_Engine which deletes the table.
+     * also the inventory
+     * truncate maybe more faster and accurate ???
+     *
      * @return bool
      */
     protected function _isIndexTable()

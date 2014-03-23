@@ -9,7 +9,9 @@
  */
 abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
-
+    /**
+     * @see Varien_Db_Adapter_Pdo_Mysql::_checkDdlTransaction
+     */
     const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
     /**
@@ -55,32 +57,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
             $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE);
         }
         return $this->_connection;
-    }
-
-    /**
-     * we also could use information_schema ... but does everybody have access to that special db?
-     * so lets create a second connection to the shadow DB just for getting all the tables within that db.
-     * we're creating the necessary xml config elements on the fly. same access credentials but different DB
-     *
-     * @return Varien_Db_Adapter_Pdo_Mysql
-     */
-    protected function _getShadowConnection()
-    {
-        $shadowName = 'findexer_write';
-        if ($this->_shadowConnection === null) {
-            $nodePrefix     = 'global/resources/' . $shadowName . '/connection/';
-            $shadowDb       = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
-            $connectDefault = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
-            if (empty($shadowDb) || $shadowDb === (string)$connectDefault->dbname) {
-                Mage::throwException('ShadowDB Name (' . $shadowDb . ') must be different than Magentos DB name: ' . (string)$connectDefault->dbname);
-            }
-            $connectDefault->dbname = $shadowDb;
-            foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
-                Mage::getConfig()->setNode($nodePrefix . $nodeName, $nodeValue);
-            }
-            $this->_shadowConnection = $this->_getResource()->getConnection($shadowName);
-        }
-        return $this->_shadowConnection;
     }
 
     /**
@@ -157,16 +133,16 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @param string  $sql
-     * @param boolean $isShadow
+     * @param string $sql
      *
      * @return Zend_Db_Statement_Interface
      */
-    protected function _rawQuery($sql, $isShadow = false)
+    protected function _rawQuery($sql)
     {
-        Mage::log($sql, null, 'findexer.log');
-        $method = true === $isShadow ? '_getShadowConnection' : '_getConnection';
-        return $this->$method()->raw_query($sql);
+        if (true === $this->_isEchoOn) {
+            Mage::log($sql, null, 'findexer.log');
+        }
+        return $this->_getConnection()->raw_query($sql);
     }
 
     /**
