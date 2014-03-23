@@ -147,6 +147,18 @@
                 </observers>
             </after_reindex_process_targetrule>
         </events>
+
+        <resource>
+            <connection>
+                <types>
+                    <pdo_findexer>
+                        <adapter>SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql</adapter>
+                        <class>Mage_Core_Model_Resource_Type_Db_Pdo_Mysql</class>
+                        <compatibleMode>1</compatibleMode>
+                    </pdo_findexer>
+                </types>
+            </connection>
+        </resource>
     </global>
 
     <default>

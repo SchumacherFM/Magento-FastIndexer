@@ -25,6 +25,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected $_currentTableSuffix = '';
 
     /**
+     * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
+     *
      * @param Varien_Event_Observer $event
      *
      * @return bool
@@ -37,16 +39,38 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
         $this->_currentTableName   = $event->getEvent()->getTableName();
         $this->_currentTableSuffix = $event->getEvent()->getTableSuffix();
+        /** @var Mage_Core_Model_Resource _resource */
+        $this->_resource = $event->getEvent()->getResource();
 
-        if ($this->_isIndexTable() || $this->_isFlatTable()) {
+        if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
 
-            /** @var Mage_Core_Model_Resource _resource */
-            $this->_resource = $event->getEvent()->getResource();
+            if (true === $this->_isFlatTable()) {
+                $this->_initShadowResourcePdoModel('catalog_write');
+            }
+
             /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
             $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
 
             // table suffix is needed for the flat tables to append _[0-9]
             $this->_createShadowTable();
+        }
+        $this->_addCurrentDbName();
+    }
+
+    /**
+     * for specific tables we need to add the default database name because creating a flat table will have foreign keys
+     * to other core tables
+     */
+    protected function _addCurrentDbName()
+    {
+        $tables = array(
+            'core_store'              => 1,
+            'catalog_category_entity' => 1,
+            'catalog_product_entity'  => 1,
+        );
+        $curTab = $this->_getCurrentTableName(false);
+        if (isset($tables[$curTab])) {
+            $this->_setMapper($curTab, $this->_getCurrentDbName() . '.' . $curTab);
         }
     }
 
@@ -82,17 +106,23 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
 
         $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
+
+        $this->_createdTables[$this->_getCurrentTableName(false)] = array(
+            't' => $this->_getCurrentTableName(false),
+            's' => $this->_currentTableSuffix
+        ); // singleton
         return $this;
     }
 
     /**
      * @param string $_originalTableName
      * @param string $_shadowTableName
+     *
+     * @return Mage_Core_Model_Resource
      */
     protected function _setMapper($_originalTableName, $_shadowTableName)
     {
-        $this->_resource->setMappedTableName($_originalTableName, $_shadowTableName);
-        $this->_createdTables[$_originalTableName] = $_originalTableName; // singleton
+        return $this->_resource->setMappedTableName($_originalTableName, $_shadowTableName);
     }
 
     /**
@@ -119,16 +149,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
             strpos($this->_currentTableName, '_idx') !== false ||
             strpos($this->_currentTableName, 'catalogsearch_fulltext') !== false ||
             strstr($this->_currentTableName, 'core_url_rewrite') !== false;
-    }
-
-    /**
-     * @return bool
-     */
-    protected function _isFlatTable()
-    {
-        return
-            strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== false ||
-            strstr($this->_currentTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== false;
     }
 
     /**

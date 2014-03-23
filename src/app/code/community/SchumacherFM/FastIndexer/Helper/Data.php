@@ -9,6 +9,8 @@
  */
 class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
 {
+    const CONFIG_DB_NAME = 'global/resources/default_setup/connection/dbname';
+
     /**
      * Table prefix for flat tables
      */

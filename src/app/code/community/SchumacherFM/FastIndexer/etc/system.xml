@@ -46,15 +46,25 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </echo>
-                        <dbName translate="label">
-                            <label>Shadow Database Name</label>
+                        <dbName1 translate="label">
+                            <label>Shadow Database Name 1</label>
                             <frontend_type>text</frontend_type>
                             <sort_order>40</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                             <comment>Database must exists and current MySQL user must have permissions for create, alter, index and drop</comment>
-                        </dbName>
+                        </dbName1>
+                        <dbName2 translate="label">
+                            <label>Shadow Database Name 2</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Database must exists and current MySQL user must have permissions for create, alter, index and drop.
+                                Name must be different from Shadow Database 1. This DB is need for complex renames.</comment>
+                        </dbName2>
                     </fields>
                 </fastindexer>
             </groups>

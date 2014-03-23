@@ -11,6 +11,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
     /**
      * @see Varien_Db_Adapter_Pdo_Mysql::_checkDdlTransaction
+     * I found that string under my foot nails.
      */
     const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
@@ -25,27 +26,51 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected $_connection = null;
 
     /**
-     * @var Varien_Db_Adapter_Pdo_Mysql
+     * @var boolean
      */
-    protected $_shadowConnection = null;
+    protected $_shadowResourceCreated = null;
 
     protected $_isEchoOn = false;
-    protected $_shadowDbName = null;
+    protected $_shadowDbName = array();
+    protected $_currentDbName = null;
 
     /**
      * @param bool $quote
      *
      * @return string
      */
-    protected function _getShadowDbName($quote = false)
+    protected function _getCurrentDbName($quote = false)
     {
-        if (null === $this->_shadowDbName) {
-            $this->_shadowDbName = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
+        if (null === $this->_currentDbName) {
+            $this->_currentDbName = (string)Mage::getConfig()->getNode(SchumacherFM_FastIndexer_Helper_Data::CONFIG_DB_NAME);
+            if (empty($this->_currentDbName)) {
+                Mage::throwException('Current DB Name cannot be empty!');
+            }
         }
         if (true === $quote) {
-            return $this->_quote($this->_shadowDbName);
+            return $this->_quote($this->_currentDbName);
         }
-        return $this->_shadowDbName;
+        return $this->_currentDbName;
+    }
+
+    /**
+     * @param bool $quote
+     * @param int  $index
+     *
+     * @return string
+     */
+    protected function _getShadowDbName($quote = false, $index = 1)
+    {
+        if (false === isset($this->_shadowDbName[$index])) {
+            $this->_shadowDbName[$index] = trim(Mage::getStoreConfig('system/fastindexer/dbName' . $index));
+            if (empty($this->_shadowDbName[$index])) {
+                Mage::throwException('Shadow DB Name cannot be empty!');
+            }
+        }
+        if (true === $quote) {
+            return $this->_quote($this->_shadowDbName[$index]);
+        }
+        return $this->_shadowDbName[$index];
     }
 
     /**
@@ -76,27 +101,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _getResource()
     {
         return $this->_resource;
-    }
-
-    /**
-     * returns all non PRI columns
-     *
-     * @param $tableName
-     *
-     * @return array
-     */
-    protected function _getColumnsFromTable($tableName)
-    {
-        /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt          = $this->_getConnection()->query('SHOW COLUMNS FROM ' . $this->_getTableName($tableName));
-        $columnsResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $columns       = array();
-        foreach ($columnsResult as $col) {
-            if ($col['Key'] !== 'PRI') {
-                $columns[] = '`' . $col['Field'] . '`';
-            }
-        }
-        return $columns;
     }
 
     /**
@@ -153,5 +157,40 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _quote($string)
     {
         return $this->_getConnection()->quoteIdentifier($string);
+    }
+
+    /**
+     * Creates a new config node for e.g. catalog_write resource so that the indexer will use a different PDO model
+     * because flat indexer uses the table name as prefix for the index name and when there is a table name like
+     * test.catalog_product_flat ... the index creation process will fail.
+     *
+     *
+     * @param string $type
+     *
+     * @return boolean
+     */
+    protected function _initShadowResourcePdoModel($type)
+    {
+        if ($this->_shadowResourceCreated === null) {
+            $nodePrefix           = 'global/resources/' . $type . '/connection/';
+            $connectDefault       = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
+            $connectDefault->type = 'pdo_findexer';
+            foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
+                Mage::getConfig()->setNode($nodePrefix . $nodeName, $nodeValue);
+            }
+            $this->_shadowResourceCreated = true; //$this->_getResource()->getConnection($shadowName);
+        }
+        return $this->_shadowResourceCreated;
+    }
+
+    /**
+     * When the default indexer of the flat table runs. it drops first the flat table and then creates it new.
+     * used connection_name: catalog_write
+     *
+     * @return bool
+     */
+    protected function _isFlatTable()
+    {
+        return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
     }
 }
