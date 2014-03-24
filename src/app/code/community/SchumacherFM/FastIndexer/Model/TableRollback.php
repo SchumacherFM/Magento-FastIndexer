@@ -36,7 +36,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
                 // reset table names ... if necessary
                 $this->_getResource()->setMappedTableName($_originalTableData['t'], $_originalTableData['t']);
 
-                $this->_dropShadowTable($result['oldName']);
+                $this->_handleOldShadowTable($result['oldName']);
                 //$this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
 
             } catch (Exception $e) {
@@ -52,23 +52,46 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     }
 
     /**
+     * Either remove the old table in the shadow DB1 or remove all indexes and FK from shadow db1 because FK
+     * and Index names must be unique in the whole DB
+     *
      * @param string $tableName
+     *
+     * @return null
      */
-    protected function _dropShadowTable($tableName)
+    protected function _handleOldShadowTable($tableName)
     {
         if (true === Mage::helper('schumacherfm_fastindexer')->dropOldTable()) {
             $this->_rawQuery(self::DISABLE_CHECKDDLTRANSACTION .
                 'DROP TABLE IF EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
-        } else {
-            // remove all indexes and FK from shadow db1. BUGGGG
-
-//            Zend_Debug::dump(get_class($this->_getConnection()));
-//            exit;
-
-            $foreignKeys = $this->_getConnection(self::CATALOG_RESOURCE_WRITE_NAME)->getForeignKeys($tableName, $this->_getShadowDbName(false, 1));
-            Zend_Debug::dump($foreignKeys);
-            exit;
+            return null;
         }
+
+        $operations = array(
+            'getForeignKeys' => 'dropForeignKey',
+            'getIndexList'   => 'dropIndex',
+        );
+
+        $con = $this->_getConnection(self::CATALOG_RESOURCE_WRITE_NAME);
+
+        foreach ($operations as $get => $drop) {
+            $keyList = $con->$get($tableName, $this->_getShadowDbName(false, 1));
+            if (count($keyList) === 0) {
+                continue;
+            }
+            if (isset($keyList['PRIMARY'])) {
+                unset($keyList['PRIMARY']);
+            }
+            foreach ($keyList as $key) {
+                $con->$drop(
+                    $tableName,
+                    isset($key['KEY_NAME']) ? $key['KEY_NAME'] : $key['FK_NAME'],
+                    $this->_getShadowDbName(false, 1)
+                );
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -79,7 +102,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     protected function _renameTable(array $tableData)
     {
         $tableName = $tableData['t'] . (empty($tableData['s']) ? '' : '_' . $tableData['s']);
-        $oldTable  = 'z' . date('Ymd-His') . '_' . $tableName;
+        $oldTable  = 'z' . date('Ymd_His') . '_' . $tableName;
         $tables    = array();
         $return    = array();
 
