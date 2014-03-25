@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Mysql PDO DB adapter
+ * Mysql PDO DB adapter with bug fixes
  */
 class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adapter_Pdo_Mysql
 {
@@ -28,7 +28,7 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
     protected function _getShadowDbName()
     {
         if (null === $this->_shadowDbName) {
-            $this->_shadowDbName = trim(Mage::getStoreConfig('system/fastindexer/dbName'));
+            $this->_shadowDbName = trim(Mage::getStoreConfig('system/fastindexer/dbName1'));
             if (empty($this->_shadowDbName)) {
                 Mage::throwException('Shadow DB Name cannot be empty!');
             }
@@ -65,6 +65,7 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
     }
 
     /**
+     * Bugfix to remove the DB name
      * Retrieve valid foreign key name
      * Check foreign key name length and allowed symbols
      *

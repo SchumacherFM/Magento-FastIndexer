@@ -9,8 +9,6 @@
  */
 abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
-    const CATALOG_RESOURCE_WRITE_NAME = 'catalog_write';
-
     /**
      * @see Varien_Db_Adapter_Pdo_Mysql::_checkDdlTransaction
      * I found that string under my foot nails.
@@ -28,6 +26,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected $_connection = array();
 
     /**
+     * @deprecated
      * @var boolean
      */
     protected $_shadowResourceCreated = null;
@@ -165,30 +164,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * Creates a new config node for e.g. catalog_write resource so that the indexer will use a different PDO model
-     * because flat indexer uses the table name as prefix for the index name and when there is a table name like
-     * test.catalog_product_flat ... the index creation process will fail.
-     *
-     *
-     * @param string $type
-     *
-     * @return boolean
-     */
-    protected function _initShadowResourcePdoModel($type)
-    {
-        if ($this->_shadowResourceCreated === null) {
-            $nodePrefix           = 'global/resources/' . $type . '/connection/';
-            $connectDefault       = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
-            $connectDefault->type = 'pdo_findexer';
-            foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
-                Mage::getConfig()->setNode($nodePrefix . $nodeName, $nodeValue);
-            }
-            $this->_shadowResourceCreated = true; //$this->_getResource()->getConnection($shadowName);
-        }
-        return $this->_shadowResourceCreated;
-    }
-
-    /**
      * When the default indexer of the flat table runs. it drops first the flat table and then creates it new.
      * used connection_name: catalog_write
      *
@@ -197,5 +172,54 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _isFlatTable()
     {
         return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
+    }
+
+    /**
+     * Creates a new config node for e.g. catalog_write resource so that the indexer will use a different PDO model
+     * because flat indexer uses the table name as prefix for the index name and when there is a table name like
+     * test.catalog_product_flat ... the index creation process will fail.
+     * There also many other bugs in Varien_Db_Adapter_Pdo_Mysql which are fixed in our PDO model.
+     * It is important this method will be executed with the retrieval of the first table name because in the
+     * Mage_Catalog_Model_Resource_Product_Flat_Indexer::prepareFlatTable() is the "bug" that first the PDO adapter
+     * will be fetched and then the table name. More ideal is the other way round :-)
+     *
+     * Product/Flat/Indexer.php is not using the catalog_read resource, it is using DEFAULT_READ_RESOURCE,
+     * so we also must patch that xml node :-(
+     *
+     * We have to change in etc/local.xml the type to pdo_mysql_findexer because the product flat indexer
+     * uses the already instantiated connection core_read which we cannot change anymore with an event observer :-(
+     * Damn!
+     *
+     * @deprecated and only listed here for doc reasons.
+     *
+     * @return boolean
+     */
+    protected function _initShadowResourcePdoModel()
+    {
+        if ($this->_shadowResourceCreated === null) {
+
+            $types = array(
+                'catalog_write',
+                Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE
+            );
+
+            foreach ($types as $type) {
+                $nodePrefix     = 'global/resources/' . $type . '/connection';
+                $connectionNode = Mage::getConfig()->getNode($nodePrefix);
+
+                if ($connectionNode && !isset($connectionNode->use)) {
+                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig($type);
+                } else {
+                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
+                }
+
+                $connectDefault->type = 'pdo_mysql_findexer';
+                foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
+                    Mage::getConfig()->setNode($nodePrefix . '/' . $nodeName, $nodeValue);
+                }
+            }
+            $this->_shadowResourceCreated = true;
+        }
+        return $this->_shadowResourceCreated;
     }
 }

@@ -42,11 +42,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_setResource($event->getEvent()->getResource());
 
         if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
-
-            if (true === $this->_isFlatTable()) {
-                $this->_initShadowResourcePdoModel(self::CATALOG_RESOURCE_WRITE_NAME);
-            }
-
             /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
             $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
 
