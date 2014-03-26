@@ -15,15 +15,17 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
+    protected $_stores = array();
+
     /**
      * @var Mage_Core_Model_Resource
      */
     protected $_resource = null;
 
     /**
-     * @var array
+     * @var SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql
      */
-    protected $_connection = array();
+    protected $_connection = null;
 
     /**
      * @deprecated
@@ -75,17 +77,14 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @param string $type
-     *
-     * @return Varien_Db_Adapter_Pdo_Mysql
+     * @return SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql
      */
-    protected function _getConnection($type = null)
+    protected function _getConnection()
     {
-        $type = null === $type ? Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE : $type;
-        if (false === isset($this->_connection[$type])) {
-            $this->_connection[$type] = $this->_getResource()->getConnection($type);
+        if (null === $this->_connection) {
+            $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE);
         }
-        return $this->_connection[$type];
+        return $this->_connection;
     }
 
     /**
@@ -115,29 +114,21 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _getTableCount($tableName)
     {
         /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt    = $this->_getConnection()->query('SELECT COUNT(*) AS counted FROM ' . $this->_getTableName($tableName));
+        $stmt    = $this->_getConnection()->query('SELECT COUNT(*) AS counted FROM ' . $this->_quote($tableName));
         $counter = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return isset($counter[0]) ? (int)$counter[0]['counted'] : 0;
     }
 
     /**
      * @param string $tableName
+     * @param string $schema
      *
      * @return bool
      */
-    protected function _dropTable($tableName)
+    protected function _dropTable($tableName, $schema = '')
     {
-        $this->_rawQuery('DROP TABLE IF EXISTS ' . $this->_getTableName($tableName));
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return string
-     */
-    protected function _getTableName($tableName)
-    {
-        return $this->_quote($tableName);
+        $schema = empty($schema) ? '' : $this->_quote($schema) . '.';
+        $this->_rawQuery('DROP TABLE IF EXISTS ' . $schema . $this->_quote($tableName));
     }
 
     /**
@@ -172,6 +163,24 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _isFlatTable()
     {
         return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
+    }
+
+    /**
+     * @param string $tableName
+     *
+     * @return bool
+     */
+    protected function _isProductFlatTable($tableName)
+    {
+        return strpos($tableName, Mage_Catalog_Model_Product_Flat_Indexer::ENTITY) !== false;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function _runsOnCommandLine()
+    {
+        return isset($_SERVER['argv']) && isset($_SERVER['argc']) && (int)$_SERVER['argc'] > 0;
     }
 
     /**

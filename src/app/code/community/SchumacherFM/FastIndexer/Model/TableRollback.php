@@ -9,7 +9,6 @@
  */
 class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
-
     /**
      * @param Varien_Event_Observer $event
      *
@@ -17,6 +16,11 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     public function rollbackTables(Varien_Event_Observer $event = null)
     {
+        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+            return null;
+        }
+
+        $this->_stores = Mage::app()->getStores();
         $this->_setResource(Mage::getSingleton('core/resource'));
 
         $this->_isEchoOn = Mage::helper('schumacherfm_fastindexer')->isEcho();
@@ -27,16 +31,21 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
 
         foreach ($tablesToRename as $_originalTableData) {
 
-            if (true === Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($_originalTableData['t'])) {
-                $this->_initShadowResourcePdoModel('catalog_write');
-            }
             try {
-                $result = $this->_renameTable($_originalTableData);
+
+                if (true === $this->_isProductFlatTable($_originalTableData['t'])) {
+                    foreach ($this->_stores as $store) {
+                        /** @var Mage_Core_Model_Store $store */
+                        $_originalTableData['s'] = $store->getId();
+                        $this->_renameShadowTables($_originalTableData);
+                    }
+                    $_originalTableData['s'] = null;
+                } else {
+                    $this->_renameShadowTables($_originalTableData);
+                }
 
                 // reset table names ... if necessary
                 $this->_getResource()->setMappedTableName($_originalTableData['t'], $_originalTableData['t']);
-
-                $this->_handleOldShadowTable($result['oldName']);
                 //$this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
 
             } catch (Exception $e) {
@@ -49,6 +58,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         // due to singleton pattern ... reset Tables
         Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->unsetTables();
         return null;
+    }
+
+    protected function _renameShadowTables(array $_originalTableData)
+    {
+        $result = $this->_renameTable($_originalTableData);
+        $this->_handleOldShadowTable($result['oldName']);
     }
 
     /**
@@ -72,10 +87,8 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             'getIndexList'   => 'dropIndex',
         );
 
-        $con = $this->_getConnection(self::CATALOG_RESOURCE_WRITE_NAME);
-
         foreach ($operations as $get => $drop) {
-            $keyList = $con->$get($tableName, $this->_getShadowDbName(false, 1));
+            $keyList = $this->_getConnection()->$get($tableName, $this->_getShadowDbName(false, 1));
             if (count($keyList) === 0) {
                 continue;
             }
@@ -83,7 +96,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
                 unset($keyList['PRIMARY']);
             }
             foreach ($keyList as $key) {
-                $con->$drop(
+                $this->_getConnection()->$drop(
                     $tableName,
                     isset($key['KEY_NAME']) ? $key['KEY_NAME'] : $key['FK_NAME'],
                     $this->_getShadowDbName(false, 1)

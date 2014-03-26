@@ -18,7 +18,11 @@
         <models>
             <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Model</class>
+                <resourceModel>schumacherfm_fastindexer_resource</resourceModel>
             </schumacherfm_fastindexer>
+            <schumacherfm_fastindexer_resource>
+                <class>SchumacherFM_FastIndexer_Model_Resource</class>
+            </schumacherfm_fastindexer_resource>
         </models>
 
         <resources>
@@ -151,17 +155,19 @@
         <!--In etc/local.xml change the resources/default_setup/connection/type to pdo_mysql_findexer-->
         <!--If you are using catalog_write and core_read additional there you also have to change-->
         <!--the type to pdo_mysql_findexer.-->
+        <!-- Also add this to the local.xml
         <resource>
             <connection>
                 <types>
                     <pdo_mysql_findexer>
                         <adapter>SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql</adapter>
-                        <class>Mage_Core_Model_Resource_Type_Db_Pdo_Mysql</class>
+                        <class>SchumacherFM_FastIndexer_Model_Resource_Type_Db_Pdo_Mysql</class>
                         <compatibleMode>1</compatibleMode>
                     </pdo_mysql_findexer>
                 </types>
             </connection>
         </resource>
+        -->
     </global>
 
     <default>

@@ -42,20 +42,18 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_setResource($event->getEvent()->getResource());
 
         if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
-            /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
-            $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
-
+            $this->_stores     = Mage::app()->getStores();
             // table suffix is needed for the flat tables to append _[0-9]
             $this->_createShadowTable();
         }
-        $this->_addCurrentDbName();
+        $this->_updateTableMapperForForeignKeys();
     }
 
     /**
      * for specific tables we need to add the default database name because creating a flat table will have foreign keys
      * to other core tables
      */
-    protected function _addCurrentDbName()
+    protected function _updateTableMapperForForeignKeys()
     {
         $tables = array(
             'core_store'              => 1,
@@ -93,10 +91,24 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _createShadowTable()
     {
-        if ($this->_isIndexTable() && !$this->_existsTableInShadowDb()) {
-            $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
-                ' LIKE ' . $this->_quote($this->_currentTableName);
-            $this->_rawQuery($sql);
+        if (true === $this->_isFlatTable()) {
+            // check just in case something fails we drop the product_flat table
+            if (true === $this->_isProductFlatTable($this->_getCurrentTableName(false))) {
+                foreach ($this->_stores as $store) {
+                    /** @var Mage_Core_Model_Store $store */
+                    $this->_currentTableSuffix = $store->getId();
+                    $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+                    $this->_currentTableSuffix = null;
+                }
+            } else {
+                $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+            }
+        } else {
+            if ($this->_isIndexTable() && !$this->_existsTableInShadowDb()) {
+                $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+                    ' LIKE ' . $this->_quote($this->_currentTableName);
+                $this->_rawQuery($sql);
+            }
         }
 
         $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
@@ -166,11 +178,4 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         return $this;
     }
 
-    /**
-     * @return bool
-     */
-    protected function _runsOnCommandLine()
-    {
-        return isset($_SERVER['argv']) && isset($_SERVER['argc']) && (int)$_SERVER['argc'] > 0;
-    }
 }
