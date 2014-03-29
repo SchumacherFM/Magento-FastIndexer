@@ -42,7 +42,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_setResource($event->getEvent()->getResource());
 
         if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
-            $this->_stores     = Mage::app()->getStores();
+            $this->_stores = Mage::app()->getStores();
             // table suffix is needed for the flat tables to append _[0-9]
             $this->_createShadowTable();
         }
@@ -91,6 +91,23 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _createShadowTable()
     {
+        if (false === isset($this->_createdTables[$this->_getCurrentTableName(false)])) {
+            $this->_createShadowTableReal();
+        }
+        $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
+
+        $this->_createdTables[$this->_getCurrentTableName(false)] = array(
+            't' => $this->_getCurrentTableName(false),
+            's' => $this->_currentTableSuffix
+        ); // singleton
+        return $this;
+    }
+
+    /**
+     *
+     */
+    protected function _createShadowTableReal()
+    {
         if (true === $this->_isFlatTable()) {
             // check just in case something fails we drop the product_flat table
             if (true === $this->_isProductFlatTable($this->_getCurrentTableName(false))) {
@@ -104,20 +121,12 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
                 $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
             }
         } else {
-            if ($this->_isIndexTable() && !$this->_existsTableInShadowDb()) {
+            if ($this->_isIndexTable() && false === $this->_existsTableInShadowDb()) {
                 $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
                     ' LIKE ' . $this->_quote($this->_currentTableName);
                 $this->_rawQuery($sql);
             }
         }
-
-        $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
-
-        $this->_createdTables[$this->_getCurrentTableName(false)] = array(
-            't' => $this->_getCurrentTableName(false),
-            's' => $this->_currentTableSuffix
-        ); // singleton
-        return $this;
     }
 
     /**
@@ -146,6 +155,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      * also the inventory
      * truncate maybe more faster and accurate ???
      *
+     * But in total the tables won't be empty with FastIndexer and the frontend user will nothing notice. So keep them in here.
+     *
      * @return bool
      */
     protected function _isIndexTable()
@@ -154,7 +165,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
             strpos($this->_currentTableName, '_index') !== false ||
             strpos($this->_currentTableName, '_idx') !== false ||
             strpos($this->_currentTableName, 'catalogsearch_fulltext') !== false ||
-            strstr($this->_currentTableName, 'core_url_rewrite') !== false;
+            $this->_isUrlRewriteTable($this->_currentTableName) !== false;
     }
 
     /**
@@ -178,4 +189,14 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         return $this;
     }
 
+    /**
+     * When the default indexer of the flat table runs. it drops first the flat table and then creates it new.
+     * used connection_name: catalog_write
+     *
+     * @return bool
+     */
+    protected function _isFlatTable()
+    {
+        return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
+    }
 }

@@ -139,17 +139,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * When the default indexer of the flat table runs. it drops first the flat table and then creates it new.
-     * used connection_name: catalog_write
-     *
-     * @return bool
-     */
-    protected function _isFlatTable()
-    {
-        return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
-    }
-
-    /**
      * @param string $tableName
      *
      * @return bool
@@ -157,6 +146,16 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _isProductFlatTable($tableName)
     {
         return strpos($tableName, Mage_Catalog_Model_Product_Flat_Indexer::ENTITY) !== false;
+    }
+
+    /**
+     * @param $tableName
+     *
+     * @return bool
+     */
+    protected function _isUrlRewriteTable($tableName)
+    {
+        return strpos($tableName, 'core_url_rewrite') !== false;
     }
 
     /**

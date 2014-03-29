@@ -23,7 +23,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $this->_stores = Mage::app()->getStores();
         $this->_setResource(Mage::getSingleton('core/resource'));
 
-        $tablesToRename  = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
+        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
         if (empty($tablesToRename)) {
             return null;
         }
@@ -45,8 +45,6 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
 
                 // reset table names ... if necessary
                 $this->_getResource()->setMappedTableName($_originalTableData['t'], $_originalTableData['t']);
-                //$this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
-
             } catch (Exception $e) {
                 Mage::logException($e);
             }
@@ -56,10 +54,17 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         return null;
     }
 
+    /**
+     * @param array $_originalTableData
+     *
+     * @return null
+     */
     protected function _renameShadowTables(array $_originalTableData)
     {
         $result = $this->_renameTable($_originalTableData);
+        $this->_copyCustomUrlRewrites($_originalTableData, $result['oldName']);
         $this->_handleOldShadowTable($result['oldName']);
+        return null;
     }
 
     /**
@@ -160,8 +165,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      *
      * @return bool 248265
      */
-    protected function _copyCustomUrlRewrites($currentTableName, $oldExistingTable)
+    protected function _copyCustomUrlRewrites($_originalTableData, $oldExistingTable)
     {
+        if (false === $this->_isUrlRewriteTable($_originalTableData['t'])) {
+            return false;
+        }
+
         /**
          * seems there is a strange thing finding the custom rewrites
          * now the custom rewrites will be lost ...
