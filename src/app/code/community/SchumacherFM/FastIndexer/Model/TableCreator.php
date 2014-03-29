@@ -47,6 +47,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
             $this->_createShadowTable();
         }
         $this->_updateTableMapperForForeignKeys();
+        return null;
     }
 
     /**

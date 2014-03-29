@@ -180,8 +180,8 @@
             <fastindexer>
                 <enable>0</enable>
                 <echo>0</echo>
-                <dropOldTable>0</dropOldTable>
-                <dbName>test</dbName>
+                <dropOldTable>1</dropOldTable>
+                <urlRewriteCopySystemRP>0</urlRewriteCopySystemRP>
             </fastindexer>
         </schumacherfm>
     </default>
