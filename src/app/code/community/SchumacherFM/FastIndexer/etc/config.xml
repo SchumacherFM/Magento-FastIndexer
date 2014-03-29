@@ -15,6 +15,11 @@
     </modules>
 
     <global>
+        <blocks>
+            <schumacherfm_fastindexer>
+                <class>SchumacherFM_FastIndexer_Block</class>
+            </schumacherfm_fastindexer>
+        </blocks>
         <models>
             <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Model</class>
