@@ -23,7 +23,6 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $this->_stores = Mage::app()->getStores();
         $this->_setResource(Mage::getSingleton('core/resource'));
 
-        $this->_isEchoOn = Mage::helper('schumacherfm_fastindexer')->isEcho();
         $tablesToRename  = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
         if (empty($tablesToRename)) {
             return null;
@@ -49,9 +48,6 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
                 //$this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
 
             } catch (Exception $e) {
-                if (true === $this->_isEchoOn) {
-                    echo 'Please see exception log!' . PHP_EOL;
-                }
                 Mage::logException($e);
             }
         }

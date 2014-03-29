@@ -33,14 +33,6 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * @return bool
-     */
-    public function isEcho()
-    {
-        return Mage::getStoreConfigFlag('system/fastindexer/echo');
-    }
-
-    /**
      * @param string $currentTableName
      *
      * @return bool

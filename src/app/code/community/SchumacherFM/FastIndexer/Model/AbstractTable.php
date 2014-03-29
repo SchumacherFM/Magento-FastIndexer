@@ -33,7 +33,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected $_shadowResourceCreated = null;
 
-    protected $_isEchoOn = false;
     protected $_shadowDbName = array();
     protected $_currentDbName = null;
 
@@ -107,19 +106,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @param $tableName
-     *
-     * @return int
-     */
-    protected function _getTableCount($tableName)
-    {
-        /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt    = $this->_getConnection()->query('SELECT COUNT(*) AS counted FROM ' . $this->_quote($tableName));
-        $counter = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return isset($counter[0]) ? (int)$counter[0]['counted'] : 0;
-    }
-
-    /**
      * @param string $tableName
      * @param string $schema
      *
@@ -138,9 +124,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _rawQuery($sql)
     {
-        if (true === $this->_isEchoOn) {
-            Mage::log($sql, null, 'findexer.log');
-        }
+        //Mage::log($sql, null, 'fastIndexerSQL.log');
         return $this->_getConnection()->raw_query($sql);
     }
 

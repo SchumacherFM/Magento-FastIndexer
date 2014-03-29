@@ -7,8 +7,8 @@
         <span class="grid-severity-notice"><span><?php echo $this->__('Database found!'); ?></span></span>
     <?php else: ?>
         <span class="grid-severity-critical"><span><?php echo $this->__('Database not found or incorrect permissions!'); ?></span></span>
+        <p>
+            <?php echo $this->__('Database must exists and current MySQL user must have permissions for create, alter, index and drop tables.'); ?>
+        </p>
     <?php endif; ?>
 </div>
-<p>
-    <?php echo $this->__('Database must exists and current MySQL user must have permissions for create, alter, index and drop tables.'); ?>
-</p>
