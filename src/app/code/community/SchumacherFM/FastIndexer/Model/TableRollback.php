@@ -9,7 +9,6 @@
  */
 class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
-
     /**
      * @param Varien_Event_Observer $event
      *
@@ -17,37 +16,147 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     public function rollbackTables(Varien_Event_Observer $event = null)
     {
-        $this->_setResource(Mage::getSingleton('core/resource'));
-
-        $this->_isEchoOn = Mage::helper('schumacherfm_fastindexer')->isEcho();
-        $tablesToRename  = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
-
-        if (empty($tablesToRename)) {
-            return false;
+        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+            return null;
         }
 
-        foreach ($tablesToRename as $_tempTableName => $_originalTableName) {
+        $this->_stores = Mage::app()->getStores();
+        $this->_setResource(Mage::getSingleton('core/resource'));
 
-            if (Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($_originalTableName)) {
-                continue;
-            }
+        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
+        if (empty($tablesToRename)) {
+            return null;
+        }
+
+        foreach ($tablesToRename as $_originalTableData) {
+
             try {
-                $oldTableNewName = $this->_renameTable($_originalTableName, $_tempTableName);
-                $this->_dropTable($oldTableNewName);
 
-                $this->_restoreTableKeys($_originalTableName);
+                if (true === $this->_isProductFlatTable($_originalTableData['t'])) {
+                    foreach ($this->_stores as $store) {
+                        /** @var Mage_Core_Model_Store $store */
+                        $_originalTableData['s'] = $store->getId();
+                        $this->_renameShadowTables($_originalTableData);
+                    }
+                    $_originalTableData['s'] = null;
+                } else {
+                    $this->_renameShadowTables($_originalTableData);
+                }
 
-                $this->_copyCustomUrlRewrites($_originalTableName, $oldTableNewName);
-
-                // reset table names
-                $this->_getResource()->setMappedTableName($_originalTableName, $_originalTableName);
+                // reset table names ... if necessary
+                $this->_getResource()->setMappedTableName($_originalTableData['t'], $_originalTableData['t']);
             } catch (Exception $e) {
-                echo 'Please see exception log!' . PHP_EOL;
                 Mage::logException($e);
             }
         }
         // due to singleton pattern ... reset Tables
         Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->unsetTables();
+        return null;
+    }
+
+    /**
+     * @param array $_originalTableData
+     *
+     * @return null
+     */
+    protected function _renameShadowTables(array $_originalTableData)
+    {
+        $result = $this->_renameTable($_originalTableData);
+        $this->_copyCustomUrlRewrites($_originalTableData, $result['oldName']);
+        $this->_handleOldShadowTable($result['oldName']);
+        return null;
+    }
+
+    /**
+     * Either remove the old table in the shadow DB1 or remove all indexes and FK from shadow db1 because FK
+     * and Index names must be unique in the whole DB
+     *
+     * @param string $tableName
+     *
+     * @return null
+     */
+    protected function _handleOldShadowTable($tableName)
+    {
+        if (true === Mage::helper('schumacherfm_fastindexer')->dropOldTable()) {
+            $this->_rawQuery(self::DISABLE_CHECKDDLTRANSACTION .
+                'DROP TABLE IF EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
+            return null;
+        }
+
+        $operations = array(
+            'getForeignKeys' => 'dropForeignKey',
+            'getIndexList'   => 'dropIndex',
+        );
+
+        foreach ($operations as $get => $drop) {
+            $keyList = $this->_getConnection()->$get($tableName, $this->_getShadowDbName(false, 1));
+            if (count($keyList) === 0) {
+                continue;
+            }
+            if (isset($keyList['PRIMARY'])) {
+                unset($keyList['PRIMARY']);
+            }
+            foreach ($keyList as $key) {
+                $this->_getConnection()->$drop(
+                    $tableName,
+                    isset($key['KEY_NAME']) ? $key['KEY_NAME'] : $key['FK_NAME'],
+                    $this->_getShadowDbName(false, 1)
+                );
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array $tableData / two keys: t = table name; s = suffix
+     *
+     * @return array
+     */
+    protected function _renameTable(array $tableData)
+    {
+        $tableName = $tableData['t'] . (empty($tableData['s']) ? '' : '_' . $tableData['s']);
+        $oldTable  = 'z' . date('Ymd_His') . '_' . $tableName;
+        $tables    = array();
+        $return    = array();
+
+        // if in the default DB the table will not exists, simply rename without any other movings.
+        if (false === $this->_getConnection()->isTableExists($tableName)) {
+            $tables[] = $this->_sqlRenameTo($this->_getShadowDbName(true, 1) . '.' . $this->_quote($tableName), $this->_quote($tableName));
+        } else {
+            $tables[] = $this->_sqlRenameTo($this->_quote($tableName), $this->_getShadowDbName(true, 2) . '.' . $this->_quote($oldTable));
+            $tables[] = $this->_sqlRenameTo($this->_getShadowDbName(true, 1) . '.' . $this->_quote($tableName), $this->_quote($tableName));
+            $tables[] = $this->_sqlRenameTo(
+                $this->_getShadowDbName(true, 2) . '.' . $this->_quote($oldTable),
+                $this->_getShadowDbName(true) . '.' . $this->_quote($oldTable)
+            );
+        }
+        $return['rename']  = $this->_sqlRenameRunQuery($tables);
+        $return['oldName'] = $oldTable;
+
+        return $return;
+    }
+
+    /**
+     * @param array $renames
+     *
+     * @return Zend_Db_Statement_Interface
+     */
+    private function _sqlRenameRunQuery(array $renames)
+    {
+        $sql = self::DISABLE_CHECKDDLTRANSACTION . 'RENAME TABLE ' . implode(',', $renames);
+        return $this->_rawQuery($sql);
+    }
+
+    /**
+     * @param string $oldName
+     * @param string $newName
+     *
+     * @return string
+     */
+    private function _sqlRenameTo($oldName, $newName)
+    {
+        return $oldName . ' TO ' . $newName;
     }
 
     /**
@@ -56,8 +165,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      *
      * @return bool 248265
      */
-    protected function _copyCustomUrlRewrites($currentTableName, $oldExistingTable)
+    protected function _copyCustomUrlRewrites($_originalTableData, $oldExistingTable)
     {
+        if (false === $this->_isUrlRewriteTable($_originalTableData['t'])) {
+            return false;
+        }
+
         /**
          * seems there is a strange thing finding the custom rewrites
          * now the custom rewrites will be lost ...
@@ -93,50 +206,5 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $this->_getConnection()->query('INSERT INTO `' . $currentTableName . '` (' . implode(',', $columns) . ')
             SELECT ' . implode(',', $columns) . ' FROM `' . $oldExistingTable . '` WHERE `is_system`=0');
         return true;
-    }
-
-    /**
-     * That's the magic ;-)
-     *
-     * @param string $oldTable
-     * @param string $newTable
-     *
-     * @return string
-     */
-    protected function _renameTable($oldTable, $newTable)
-    {
-        $oldTableNewName = $oldTable . '_old';
-
-        $tables = array();
-        if ($this->_getConnection()->isTableExists($oldTable)) {
-            $tables[] = $this->_sqlRenameTo($oldTable, $oldTableNewName);
-        }
-        $tables[] = $this->_sqlRenameTo($newTable, $oldTable);
-
-        $sql = self::DISABLE_CHECKDDLTRANSACTION . 'RENAME TABLE ' . implode(',', $tables);
-        $this->_rawQuery($sql);
-        return $oldTableNewName;
-    }
-
-    /**
-     * @param string $tableName
-     * @param int    $counter
-     *
-     * @return string
-     */
-    protected function _formatLine($tableName, $counter)
-    {
-        return str_pad($tableName, 50, '_', STR_PAD_RIGHT) . ' ' . $counter . PHP_EOL;
-    }
-
-    /**
-     * @param string $oldName
-     * @param string $newName
-     *
-     * @return string
-     */
-    protected function  _sqlRenameTo($oldName, $newName)
-    {
-        return $this->_getTableName($oldName) . ' TO ' . $this->_getTableName($newName);
     }
 }

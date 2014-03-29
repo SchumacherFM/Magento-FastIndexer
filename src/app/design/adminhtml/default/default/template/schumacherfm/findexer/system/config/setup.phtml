@@ -1,0 +1,64 @@
+<?php
+/** @var $this SchumacherFM_FastIndexer_Block_Adminhtml_System_Config_Setup */
+
+?>
+<div style="display: table-cell; padding: 0.5em 0; width: 23em;">
+    <?php if (true === $this->isInstanceOfFindexerPdo()): ?>
+        <span class="grid-severity-notice"><span><?php echo $this->__('Installation of PDO class is correct!'); ?></span></span>
+    <?php else: ?>
+        <span class="grid-severity-critical"><span><?php echo $this->__('Incorrect installation of PDO class!'); ?></span></span>
+</div>
+    <h4><?php echo $this->__('Edit your app/etc/local.xml');?></h4>
+    <ol>
+        <li><?php echo $this->__('1. Change the value of node <em style="color: green;">type</em> to <em style="color: orangered;">pdo_mysql_fastindexer</em>.'); ?></li>
+        <li><?php echo $this->__('2. Add the new node <em style="color: orangered;">resource</em>.'); ?></li>
+        <li><?php echo $this->__('3. Clear caches and reload this page.');?></li>
+        <li><?php echo $this->__('4. These instructions must disappear.');?></li>
+    </ol>
+    <pre>
+&lt;config&gt;
+    &lt;global&gt;
+        &lt;install&gt;
+            ...
+        &lt;/install&gt;
+        &lt;crypt&gt;
+            ...
+        &lt;/crypt&gt;
+        &lt;resources&gt;
+            &lt;db&gt;
+                ...
+            &lt;/db&gt;
+            &lt;default_setup&gt;
+                &lt;connection&gt;
+                    ...
+                    <span style="font-weight: bold; color: green">&lt;type&gt;</span><span
+            style="font-weight: bold; color: orangered">&lt;![CDATA[pdo_mysql_fastindexer]]&gt;</span><span style="font-weight: bold; color: green">&lt;/type&gt;</span>
+                    ...
+                &lt;/connection&gt;
+            &lt;/default_setup&gt;
+        &lt;/resources&gt;
+        <span style="font-weight: bold; color: orangered">
+        &lt;resource&gt;
+            &lt;connection&gt;
+                &lt;types&gt;
+                    &lt;pdo_mysql_fastindexer&gt;
+                        &lt;adapter&gt;SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql&lt;/adapter&gt;
+                        &lt;class&gt;SchumacherFM_FastIndexer_Model_Resource_Type_Db_Pdo_Mysql&lt;/class&gt;
+                        &lt;compatibleMode&gt;1&lt;/compatibleMode&gt;
+                    &lt;/pdo_mysql_fastindexer&gt;
+                &lt;/types&gt;
+            &lt;/connection&gt;
+        &lt;/resource&gt;
+        </span>
+        &lt;session_save&gt;...&lt;/session_save&gt;
+        &lt;cache&gt;
+            ...
+        &lt;/cache&gt;
+    &lt;/global&gt;
+    &lt;admin&gt;
+        ...
+    &lt;/admin&gt;
+&lt;/config&gt;
+    </pre>
+    <?php endif; ?>
+

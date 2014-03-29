@@ -12,151 +12,165 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     /**
      * @var array
      */
-    protected $_createdTables = null;
+    protected $_createdTables = array();
 
     /**
      * @var string
      */
-    protected $_originalTableName = '';
+    protected $_currentTableName = '';
 
     /**
      * @var string
      */
-    protected $_tempTableName = '';
+    protected $_currentTableSuffix = '';
 
     /**
+     * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
+     *
      * @param Varien_Event_Observer $event
      *
      * @return bool
      */
     public function createTable(Varien_Event_Observer $event)
     {
-        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) { // run only in shell
+        // run only in shell and maybe later also via backend
+        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
+        $this->_currentTableName   = $event->getEvent()->getTableName();
+        $this->_currentTableSuffix = $event->getEvent()->getTableSuffix();
+        $this->_setResource($event->getEvent()->getResource());
 
-        $this->_setOriginalTableName($event->getEvent()->getTableName());
+        if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
+            $this->_stores = Mage::app()->getStores();
+            // table suffix is needed for the flat tables to append _[0-9]
+            $this->_createShadowTable();
+        }
+        $this->_updateTableMapperForForeignKeys();
+    }
 
-        if ($this->_isIndexTable() || $this->_isFlatTable()) {
-
-            /** @var Mage_Core_Model_Resource _resource */
-            $this->_resource = $event->getEvent()->getResource();
-            /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
-            $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
-
-            $this->_setTempTableName()->_createTempTable($event->getEvent()->getTableSuffix());
+    /**
+     * for specific tables we need to add the default database name because creating a flat table will have foreign keys
+     * to other core tables
+     */
+    protected function _updateTableMapperForForeignKeys()
+    {
+        $tables = array(
+            'core_store'              => 1,
+            'catalog_category_entity' => 1,
+            'catalog_product_entity'  => 1,
+        );
+        $curTab = $this->_getCurrentTableName(false);
+        if (isset($tables[$curTab])) {
+            $this->_setMapper($curTab, $this->_getCurrentDbName() . '.' . $curTab);
         }
     }
 
     /**
-     * @param string $table
+     * @param bool $withSuffix
+     * @param bool $quote
      *
-     * @return $this
+     * @return string
      */
-    protected function _setOriginalTableName($table)
+    protected function _getCurrentTableName($withSuffix = true, $quote = false)
     {
-        $this->_originalTableName = $table;
-        $this->_originalTableName = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_originalTableName);
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    protected function _setTempTableName()
-    {
-        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== false) {
-            $this->_tempTableName = $this->_originalTableName;
+        $return = $this->_currentTableName .
+            (true === $withSuffix && false === empty($this->_currentTableSuffix)
+                ? '_' . $this->_currentTableSuffix
+                : '');
+        if (true === $quote) {
+            return $this->_quote($return);
         }
-        $this->_tempTableName = self::FINDEX_TBL_PREFIX . $this->_originalTableName;
+        return $return;
+    }
+
+    /**
+     * this needs to be execute in another DB because index names are unique within a DB and if the create the shadow tables
+     * within the same db as magento then the index names are different
+     * @return $this
+     */
+    protected function _createShadowTable()
+    {
+        if (false === isset($this->_createdTables[$this->_getCurrentTableName(false)])) {
+            $this->_createShadowTableReal();
+        }
+        $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
+
+        $this->_createdTables[$this->_getCurrentTableName(false)] = array(
+            't' => $this->_getCurrentTableName(false),
+            's' => $this->_currentTableSuffix
+        ); // singleton
         return $this;
     }
 
     /**
-     * @return bool
-     */
-    protected function _runsOnCommandLine()
-    {
-        return isset($_SERVER['argv']) && (int)$_SERVER['argc'] > 0;
-    }
-
-    /**
-     * @param string $tableSuffix
      *
-     * @return $this
-     * @throws Exception
      */
-    protected function _createTempTable($tableSuffix = '')
+    protected function _createShadowTableReal()
     {
-        if (empty($this->_tempTableName)) {
-            throw new Exception('fastindexer: $this->_tempTableName is empty!');
+        if (true === $this->_isFlatTable()) {
+            // check just in case something fails we drop the product_flat table
+            if (true === $this->_isProductFlatTable($this->_getCurrentTableName(false))) {
+                foreach ($this->_stores as $store) {
+                    /** @var Mage_Core_Model_Store $store */
+                    $this->_currentTableSuffix = $store->getId();
+                    $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+                    $this->_currentTableSuffix = null;
+                }
+            } else {
+                $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+            }
+        } else {
+            if ($this->_isIndexTable() && false === $this->_existsTableInShadowDb()) {
+                $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+                    ' LIKE ' . $this->_quote($this->_currentTableName);
+                $this->_rawQuery($sql);
+            }
         }
-
-        if ($this->_isIndexTable() && !$this->_existsTempTableInDb()) {
-            $this->_rawQuery(
-                self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE `' . $this->_tempTableName . '` LIKE `' . $this->_originalTableName . '`'
-            );
-        }
-
-        $this->_setMapper($this->_originalTableName, $this->_tempTableName);
-        // create "virtual" entries ...
-        if (!empty($tableSuffix)) {
-            $this->_setMapper($this->_originalTableName . '_' . $tableSuffix, $this->_tempTableName . '_' . $tableSuffix);
-        }
-
-        return $this;
     }
 
     /**
      * @param string $_originalTableName
-     * @param string $_tempTableName
+     * @param string $_shadowTableName
+     *
+     * @return Mage_Core_Model_Resource
      */
-    protected function _setMapper($_originalTableName, $_tempTableName)
+    protected function _setMapper($_originalTableName, $_shadowTableName)
     {
-        $this->_resource->setMappedTableName($_originalTableName, $_tempTableName);
-        $this->_createdTables[$_tempTableName] = $_originalTableName;
+        return $this->_getResource()->setMappedTableName($_originalTableName, $_shadowTableName);
     }
 
     /**
      * @return bool
      */
-    protected function _existsTempTableInDb()
+    protected function _existsTableInShadowDb()
     {
-        if ($this->_createdTables === null) {
-            $this->_createdTables = array();
-            /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-            $stmt   = $this->_getConnection()->query('SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
-            $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($tables as $table) {
-                $tn                        = reset($table);
-                $this->_createdTables[$tn] = str_replace(self::FINDEX_TBL_PREFIX, '', $tn);
-            }
-        }
-        return isset($this->_createdTables[$this->_tempTableName]);
+        // could also be the shadowConnection
+        return $this->_getConnection()->isTableExists($this->_getCurrentTableName(), $this->_getShadowDbName());
     }
 
     /**
+     * catalogsearch_fulltext can be removed because the indexer of catalogsearch_fulltext has a cleanIndex
+     * method in Mage_CatalogSearch_Model_Resource_Fulltext_Engine which deletes the table.
+     * also the inventory
+     * truncate maybe more faster and accurate ???
+     *
+     * But in total the tables won't be empty with FastIndexer and the frontend user will nothing notice. So keep them in here.
+     *
      * @return bool
      */
     protected function _isIndexTable()
     {
         return
-            strpos($this->_originalTableName, '_index') !== false ||
-            strpos($this->_originalTableName, '_idx') !== false ||
-            strstr($this->_originalTableName, 'core_url_rewrite') !== false;
+            strpos($this->_currentTableName, '_index') !== false ||
+            strpos($this->_currentTableName, '_idx') !== false ||
+            strpos($this->_currentTableName, 'catalogsearch_fulltext') !== false ||
+            $this->_isUrlRewriteTable($this->_currentTableName) !== false;
     }
 
     /**
-     * @return bool
-     */
-    protected function _isFlatTable()
-    {
-        return
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== false ||
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== false;
-    }
-
-    /**
+     * will be called from tableRollBack class
+     *
      * @return array|null
      */
     public function getTables()
@@ -171,7 +185,18 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function unsetTables()
     {
-        $this->_createdTables = null;
+        $this->_createdTables = array();
         return $this;
+    }
+
+    /**
+     * When the default indexer of the flat table runs. it drops first the flat table and then creates it new.
+     * used connection_name: catalog_write
+     *
+     * @return bool
+     */
+    protected function _isFlatTable()
+    {
+        return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
     }
 }
