@@ -43,6 +43,27 @@ On my MacBook Air Mid 2012 tested with the following stores.
 
 Condition for all tests: no load on the frontend. Just indexing.
 
+### Magento 1.8 default installation
+
+##### Disabled FastIndexer:
+
+```
+$ time php indexer.php reindexall
+real	0m14.209s
+user	0m5.836s
+sys	    0m0.370s
+```
+
+##### Enabled FastIndexer:
+
+```
+$ time php indexer.php reindexall
+real	0m7.490s
+user	0m4.265s
+sys	0m0.179s
+```
+
+
 ### Zookal
 
 Disabled FastIndexer:
