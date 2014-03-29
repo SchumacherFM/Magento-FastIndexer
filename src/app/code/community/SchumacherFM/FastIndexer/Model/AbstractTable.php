@@ -15,7 +15,10 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
-    protected $_stores = array();
+    /**
+     * @var array
+     */
+    protected $_stores = null;
 
     /**
      * @var Mage_Core_Model_Resource
@@ -124,7 +127,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _rawQuery($sql)
     {
-        //Mage::log($sql, null, 'fastIndexerSQL.log');
+        //echo "$sql\n";
         return $this->_getConnection()->raw_query($sql);
     }
 
@@ -164,6 +167,22 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _runsOnCommandLine()
     {
         return isset($_SERVER['argv']) && isset($_SERVER['argc']) && (int)$_SERVER['argc'] > 0;
+    }
+
+    /**
+     * @return array
+     */
+    protected function _getStoreIds()
+    {
+        if (null === $this->_stores) {
+            $stores        = Mage::app()->getStores();
+            $this->_stores = array();
+            foreach ($stores as $store) {
+                /** @var Mage_Core_Model_Store $store */
+                $this->_stores[] = (int)$store->getId();
+            }
+        }
+        return $this->_stores;
     }
 
     /**

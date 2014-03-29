@@ -42,7 +42,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_setResource($event->getEvent()->getResource());
 
         if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
-            $this->_stores = Mage::app()->getStores();
             // table suffix is needed for the flat tables to append _[0-9]
             $this->_createShadowTable();
         }
@@ -92,12 +91,12 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _createShadowTable()
     {
-        if (false === isset($this->_createdTables[$this->_getCurrentTableName(false)])) {
+        if (false === isset($this->_createdTables[$this->_getCurrentTableName()])) {
             $this->_createShadowTableReal();
         }
         $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
 
-        $this->_createdTables[$this->_getCurrentTableName(false)] = array(
+        $this->_createdTables[$this->_getCurrentTableName()] = array(
             't' => $this->_getCurrentTableName(false),
             's' => $this->_currentTableSuffix
         ); // singleton
@@ -109,25 +108,27 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _createShadowTableReal()
     {
-        if (true === $this->_isFlatTable()) {
-            // check just in case something fails we drop the product_flat table
-            if (true === $this->_isProductFlatTable($this->_getCurrentTableName(false))) {
-                foreach ($this->_stores as $store) {
-                    /** @var Mage_Core_Model_Store $store */
-                    $this->_currentTableSuffix = $store->getId();
-                    $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
-                    $this->_currentTableSuffix = null;
-                }
-            } else {
-                $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
-            }
-        } else {
-            if ($this->_isIndexTable() && false === $this->_existsTableInShadowDb()) {
-                $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
-                    ' LIKE ' . $this->_quote($this->_currentTableName);
-                $this->_rawQuery($sql);
-            }
+        // if index table or category_flat table then drop in shadow db
+        if (true === $this->_isIndexTable() || (true === $this->_isFlatTable() && false === $this->_isProductFlatTable($this->_getCurrentTableName(false)))) {
+            $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
         }
+
+        // drop product flat tables; check just in case something fails we drop the product_flat table
+        if (true === $this->_isProductFlatTable($this->_getCurrentTableName(false))) {
+            foreach ($this->_getStoreIds() as $storeId) {
+                $this->_currentTableSuffix = $storeId;
+                $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+                $this->_currentTableSuffix = null;
+            }
+            return true;
+        }
+        // create all non flat index tables
+        if (true === $this->_isIndexTable()) {
+            $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+                ' LIKE ' . $this->_quote($this->_currentTableName);
+            $this->_rawQuery($sql);
+        }
+        return true;
     }
 
     /**
@@ -139,15 +140,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _setMapper($_originalTableName, $_shadowTableName)
     {
         return $this->_getResource()->setMappedTableName($_originalTableName, $_shadowTableName);
-    }
-
-    /**
-     * @return bool
-     */
-    protected function _existsTableInShadowDb()
-    {
-        // could also be the shadowConnection
-        return $this->_getConnection()->isTableExists($this->_getCurrentTableName(), $this->_getShadowDbName());
     }
 
     /**
