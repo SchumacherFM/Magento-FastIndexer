@@ -73,9 +73,6 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <depends>
-                                <enable>1</enable>
-                            </depends>
                         </correctSetup>
                     </fields>
                 </fastindexer>

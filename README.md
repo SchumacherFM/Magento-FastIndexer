@@ -1,11 +1,16 @@
 FastIndexer
 ===========
 
-Integrates seamlessly into the existing indexer process and even into your custom indexer process (theoretically).
+- Integrates seamlessly into the existing default and your customized indexer process.
+- Does not change the core Magento indexer logic! No class rewrites!
+- Speeds up the whole indexing process of your Magento store. You can enable or disable the module in the backend and test the
+speed difference by yourself.
+- The frontend will not be affected anymore by any reindex process.
+- Full reindexing now even under high frontend load possible (Citation/Test needed ... ).
+- Limits the amount of SQL queries
+- Even integrates into your custom indexer processes (theoretically, talk to me).
 
-Makes indexing of your Magento store around x% faster!
-
-Go to backend -> System -> Configuration -> Advanced -> @SchumacherFM -> FastIndexer and enable there the FastIndexer
+The the moment runs only via command line.
 
 Then run:
 ```
@@ -17,28 +22,20 @@ $ php -f index.php reindexall
 What it does?
 -------------
 
-Some magic
-
+Some magic!
 
 About
 -----
 - version: 1.0.0
 - extension key: SchumacherFM_FastIndexer
-- [extension on GitHub](https://github.com/SchumacherFM)
-- [direct download link](https://github.com/SchumacherFM)
-
 
 Compatibility
 -------------
-- Magento >= 1.x Every version which has the event resource_get_tablename implemented
+- Magento CE >= 1.6.2
 - php >= 5.2.0
 
-It could run with Magento < 1.5 but still not tested.
+The FastIndexer will not run with Magento CE < 1.6.2 because elementary events are missing.
 
-
-Todo / Next Versions
---------------------
-- nothing ...
 
 # Performance
 
@@ -46,7 +43,23 @@ On my MacBook Air Mid 2012 tested with the following stores.
 
 Condition for all tests: no load on the frontend. Just indexing.
 
-## Stoeckli
+### Zookal
+
+Disabled FastIndexer:
+
+```
+$ time php indexer.php --reindexall
+real	13m0.326s
+user	5m21.088s
+sys	    0m11.239s
+```
+
+Enabled FastIndexer:
+
+```
+$ time php indexer.php --reindexall
+...
+```
 
 ### catalog_url
 
@@ -160,7 +173,8 @@ Report a bug or send me a pull request.
 
 Licence
 -------
-[OSL - Open Software Licence 3.0](http://opensource.org/licenses/osl-3.0.php)
+
+proprietary
 
 Author
 ------
