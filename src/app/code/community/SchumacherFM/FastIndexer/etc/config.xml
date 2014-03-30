@@ -173,6 +173,12 @@
             </connection>
         </resource>
         -->
+        <fastindexer>
+            <!--These are all the table parts which are considered to be an index table.-->
+            <!--You can extend that list with your own index tables.-->
+            <!--Case sensitive and strpos is used for comparing.-->
+            <index_tables>_index,_idx,catalogsearch_fulltext,cataloginventory_stock_status,tag_summary,core_url_rewrite</index_tables>
+        </fastindexer>
     </global>
 
     <default>

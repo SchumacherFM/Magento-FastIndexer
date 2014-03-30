@@ -25,6 +25,16 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected $_currentTableSuffix = '';
 
     /**
+     * @var array
+     */
+    protected $_isIndexTableList = null;
+
+    /**
+     * @var array
+     */
+    protected $_isIndexTableListCache = array();
+
+    /**
      * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
      *
      * @param Varien_Event_Observer $event
@@ -150,16 +160,28 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      * truncate maybe more faster and accurate ???
      *
      * But in total the tables won't be empty with FastIndexer and the frontend user will nothing notice. So keep them in here.
-     *
      * @return bool
      */
     protected function _isIndexTable()
     {
-        return
-            strpos($this->_currentTableName, '_index') !== false ||
-            strpos($this->_currentTableName, '_idx') !== false ||
-            strpos($this->_currentTableName, 'catalogsearch_fulltext') !== false ||
-            $this->_isUrlRewriteTable($this->_currentTableName) !== false;
+        if (null === $this->_isIndexTableList) {
+            $this->_isIndexTableList = explode(',', (string)Mage::getConfig()->getNode('global/fastindexer/index_tables'));
+            if (false === is_array($this->_isIndexTableList) || 0 === count($this->_isIndexTableList)) {
+                Mage::throwException('Missing config node: global/fastindexer/index_tables');
+            }
+        }
+
+        if (true === isset($this->_isIndexTableListCache[$this->_currentTableName])) {
+            return true;
+        }
+
+        foreach ($this->_isIndexTableList as $tablePart) {
+            if (false !== strpos($this->_currentTableName, trim($tablePart))) {
+                $this->_isIndexTableListCache[$this->_currentTableName] = 1;
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

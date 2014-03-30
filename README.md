@@ -101,7 +101,7 @@ On my MacBook Air Mid 2012 tested with the following stores.
 
 Condition for all tests: no load on the frontend. Just indexing of previous reindexed tables.
 
-All tests run via:
+All tests run several times via:
 
 ```
 $ time php indexer.php reindexall
@@ -117,14 +117,14 @@ Stock Status index was rebuilt successfully
 
 ### Magento 1.8 default installation
 
-- One store view
-- ~ 15.500 categories
-- ~ 45.400 products
+- 3 store views
+- 27 categories
+- 120 products
 
 | FastIndexer | real     | user | sys| Query Count |
 |-----------|----------|-------|----|--------------|
-| Disabled  | 0m14.209s | 0m5.836s | 0m0.370s | @todo |
-| Enabled  | 0m7.490s | 0m4.265s | 0m0.179s | @todo |
+| Disabled  | 14.209s | 5.836s | 0.370s | 3275 |
+| Enabled  |  7.490s |  4.265s | 0.179s | 2670 |
 
 
 ### Shop C: Magento EE
