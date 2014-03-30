@@ -127,6 +127,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _rawQuery($sql)
     {
+        $sql = self::DISABLE_CHECKDDLTRANSACTION . $sql;
         //echo "$sql\n";
         return $this->_getConnection()->raw_query($sql);
     }

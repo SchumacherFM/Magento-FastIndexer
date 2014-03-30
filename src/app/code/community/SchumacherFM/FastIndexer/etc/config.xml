@@ -181,7 +181,7 @@
                 <enable>0</enable>
                 <echo>0</echo>
                 <dropOldTable>1</dropOldTable>
-                <urlRewriteCopySystemRP>0</urlRewriteCopySystemRP>
+                <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
             </fastindexer>
         </schumacherfm>
     </default>

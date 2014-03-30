@@ -41,6 +41,7 @@ class SchumacherFM_FastIndexer_Block_Adminhtml_System_Config_Database extends Ma
      */
     protected function _getElementHtml(Varien_Data_Form_Element_Abstract $element)
     {
+        Mage::register($element->getHtmlId(), $element->getValue());
         $parent = parent::_getElementHtml($element);
         return $parent . $this->_toHtml();
     }
@@ -50,6 +51,13 @@ class SchumacherFM_FastIndexer_Block_Adminhtml_System_Config_Database extends Ma
      */
     public function getDatabaseExists()
     {
+        if (strpos($this->_currentElement->getHtmlId(), 'dbName2') !== false) {
+            $value1 = Mage::registry('system_fastindexer_dbName1');
+            if (strtolower($this->_currentElement->getValue()) === strtolower($value1)) {
+                return false;
+            }
+        }
+
         $dbName = $this->_currentElement->getData('value');
         if (empty($dbName)) {
             return false;

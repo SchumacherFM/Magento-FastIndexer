@@ -76,24 +76,26 @@
                             <show_in_store>0</show_in_store>
                         </correctSetup>
 
-                        <urlRewriteCopySystemRP translate="label,comment">
-                            <label>URL Rewrites; copy old redirect permanents</label>
+                        <urlRewriteCopyCustom translate="label,comment">
+                            <label>URL Rewrites: Copy all custom URLs</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>70</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment><![CDATA[Enable this option if you wish also to copy the URLs generated via
-                                the option "Create Permanent Redirect for old URL" when editing a product.
-                                Be careful: due to a bug in Magento ~<=1.7 this can fill your rewrite table with
-                                a lot of unused URLs. If you enable this option reindexing will be slowed down.
-                                Your custom created redirect URLs are not affected by this option.
+                            <comment><![CDATA[Enable this option if you wish to copy all custom URLs.
+                                Before enabling this option be sure that the permanent rewrite generating bug
+                                in Magento ~<=1.7 has been fixed. Otherwise you will add tens of thousands useless
+                                 rewrites.
+                                 If this option is disabled only the rewrites created by the store maintainer will be copied.
+                                 But this can be slow because a regular expression will be used to determine all rewrites.
+                                 If set to yes no regex will be used.
                                 ]]></comment>
                             <depends>
                                 <enable>1</enable>
                             </depends>
-                        </urlRewriteCopySystemRP>
+                        </urlRewriteCopyCustom>
 
                     </fields>
                 </fastindexer>

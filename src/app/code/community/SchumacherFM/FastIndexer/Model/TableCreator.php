@@ -104,7 +104,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     }
 
     /**
-     *
+     * drops the table in the shadow db
+     * creates the table in the shadow db
      */
     protected function _createShadowTableReal()
     {
@@ -124,7 +125,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
         // create all non flat index tables
         if (true === $this->_isIndexTable()) {
-            $sql = self::DISABLE_CHECKDDLTRANSACTION . 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+            $sql = 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
                 ' LIKE ' . $this->_quote($this->_currentTableName);
             $this->_rawQuery($sql);
         }

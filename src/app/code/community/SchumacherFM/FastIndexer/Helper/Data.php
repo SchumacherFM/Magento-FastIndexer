@@ -65,9 +65,9 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @return bool
      */
-    public function enableUrlRewriteCopySystemRP()
+    public function enableUrlRewriteCopyCustom()
     {
-        return Mage::getStoreConfigFlag('system/fastindexer/urlRewriteCopySystemRP');
+        return Mage::getStoreConfigFlag('system/fastindexer/urlRewriteCopyCustom');
     }
 
     /**
