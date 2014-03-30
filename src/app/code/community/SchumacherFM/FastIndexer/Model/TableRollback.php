@@ -19,8 +19,9 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
-
-        $tablesToRename = Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->getTables();
+        /** @var SchumacherFM_FastIndexer_Model_TableCreator $tableCreator */
+        $tableCreator   = Mage::getSingleton('schumacherfm_fastindexer/tableCreator');
+        $tablesToRename = $tableCreator->getTables();
         if (empty($tablesToRename)) {
             return null;
         }
@@ -40,8 +41,8 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             // reset table names ... if necessary
             $this->_getResource()->setMappedTableName($_originalTableData['t'], $_originalTableData['t']);
         }
-        // due to singleton pattern ... reset Tables ... not needed?
-        Mage::getSingleton('schumacherfm_fastindexer/tableCreator')->unsetTables();
+        // due to singleton pattern ... reset Tables
+        $tableCreator->unsetTables();
         return null;
     }
 
@@ -183,7 +184,10 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $select = 'SELECT ' . implode(',', $columns) . ' FROM `' . $_originalTableData['t'] . '`
             WHERE is_system=0 AND (' . implode(' OR ', $customUrls) . ')';
 
-        $this->_rawQuery('INSERT INTO ' . $this->_getShadowDbName(true, 1) . '.' . $_originalTableData['t'] . ' (' . implode(',', $columns) . ')' . $select);
+        $insert = 'INSERT INTO ' . $this->_getShadowDbName(true, 1) . '.' . $_originalTableData['t'] . ' (' . implode(',', $columns) . ')' . $select;
+        $insert .= 'ON DUPLICATE KEY UPDATE category_id=VALUES(category_id),product_id=VALUES(product_id),target_path=VALUES(target_path),';
+        $insert .= 'is_system=VALUES(is_system),`options`=VALUES(`options`),`description`=VALUES(`description`)';
+        $this->_rawQuery($insert);
 
         return true;
     }

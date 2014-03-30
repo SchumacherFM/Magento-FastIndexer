@@ -128,8 +128,12 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _rawQuery($sql)
     {
         $sql = self::DISABLE_CHECKDDLTRANSACTION . $sql;
-        //echo "$sql\n";
-        return $this->_getConnection()->raw_query($sql);
+        try {
+            return $this->_getConnection()->raw_query($sql);
+        } catch (PDOException $e) {
+            Mage::log(PHP_EOL . $sql . PHP_EOL . $e->__toString(), Zend_Log::ERR, 'fastIndexerException.log');
+        }
+        return false;
     }
 
     /**

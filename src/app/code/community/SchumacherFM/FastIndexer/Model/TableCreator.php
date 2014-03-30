@@ -34,22 +34,34 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected $_isIndexTableListCache = array();
 
+    protected $_currentIndexerProcess = null;
+
+    public function startIndexerProcess(Varien_Event_Observer $observer)
+    {
+        $this->_currentIndexerProcess = $observer->getEvent()->getIndexerCode();
+    }
+
     /**
      * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
      *
-     * @param Varien_Event_Observer $event
+     * @param Varien_Event_Observer $observer
      *
      * @return bool
      */
-    public function createTable(Varien_Event_Observer $event)
+    public function createTable(Varien_Event_Observer $observer)
     {
         // run only in shell and maybe later also via backend
         if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
-        $this->_currentTableName   = $event->getEvent()->getTableName();
-        $this->_currentTableSuffix = $event->getEvent()->getTableSuffix();
-        $this->_setResource($event->getEvent()->getResource());
+        $this->_currentTableName   = $observer->getEvent()->getTableName();
+        $this->_currentTableSuffix = $observer->getEvent()->getTableSuffix();
+        $this->_setResource($observer->getEvent()->getResource());
+
+        // check here for which table is which index event running. so we need a mapping from table to index name
+        if (true === $this->_isIndexTable() && false === $this->isYourIndexerRunning()) {
+            return null;
+        }
 
         if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
             // table suffix is needed for the flat tables to append _[0-9]
@@ -172,15 +184,16 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
 
         if (true === isset($this->_isIndexTableListCache[$this->_currentTableName])) {
-            return true;
+            return $this->_isIndexTableListCache[$this->_currentTableName];
         }
 
         foreach ($this->_isIndexTableList as $tablePart) {
             if (false !== strpos($this->_currentTableName, trim($tablePart))) {
-                $this->_isIndexTableListCache[$this->_currentTableName] = 1;
+                $this->_isIndexTableListCache[$this->_currentTableName] = true;
                 return true;
             }
         }
+        $this->_isIndexTableListCache[$this->_currentTableName] = false;
         return false;
     }
 
@@ -214,5 +227,22 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _isFlatTable()
     {
         return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
+    }
+
+    /**
+     * Esp. when catalog_product_price runs which calls the stock indexer first and when then the price indexer
+     * run the stocks will get truncated :-(
+     *
+     * when catalogsearch_fulltext runs then it requires the table cataloginventory_stock_status and this class
+     * will drop that table asap when not checking if the tables cataloginventory_stock_status indexer is running.
+     * so we need a mapping from table name to indexer name
+     * @return bool
+     */
+    public function isYourIndexerRunning()
+    {
+
+        Zend_Debug::dump($this->_currentIndexerProcess . ' -> ' . $this->_currentTableName);
+
+        return true;
     }
 }

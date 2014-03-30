@@ -28,6 +28,11 @@
             <schumacherfm_fastindexer_resource>
                 <class>SchumacherFM_FastIndexer_Model_Resource</class>
             </schumacherfm_fastindexer_resource>
+            <index>
+                <rewrite>
+                    <process>SchumacherFM_FastIndexer_Model_Index_Process</process>
+                </rewrite>
+            </index>
         </models>
 
         <resources>
@@ -46,6 +51,16 @@
         </helpers>
 
         <events>
+            <before_reindex_process>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableCreator</class>
+                        <method>startIndexerProcess</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </before_reindex_process>
+
             <resource_get_tablename>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -155,6 +170,16 @@
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_targetrule>
+
+            <after_reindex_process_tag_summary>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableRollback</class>
+                        <method>rollbackTables</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </after_reindex_process_tag_summary>
         </events>
 
         <!--In etc/local.xml change the resources/default_setup/connection/type to pdo_mysql_findexer-->
@@ -177,7 +202,9 @@
             <!--These are all the table parts which are considered to be an index table.-->
             <!--You can extend that list with your own index tables.-->
             <!--Case sensitive and strpos is used for comparing.-->
-            <index_tables>_index,_idx,catalogsearch_fulltext,cataloginventory_stock_status,tag_summary,core_url_rewrite</index_tables>
+            <index_tables>_index, _idx, _tmp, catalogsearch_fulltext, cataloginventory_stock_status,
+                tag_summary, core_url_rewrite
+            </index_tables>
         </fastindexer>
     </global>
 
