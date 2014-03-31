@@ -3,16 +3,12 @@
 class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Process
 {
 
-    /**
-     * Reindex all data what this process responsible is
-     *
-     */
+    const BEFORE_REINDEX_PROCESS_EVENT = 'before_reindex_process_';
+
     public function reindexAll()
     {
-//        Mage::dispatchEvent('before_reindex_process_' . $this->getIndexerCode());
-        Mage::dispatchEvent('before_reindex_process',
-            array('indexer_code' => $this->getIndexerCode())
-        );
+        Mage::dispatchEvent(self::BEFORE_REINDEX_PROCESS_EVENT . $this->getIndexerCode());
+
         parent::reindexAll();
     }
 }
