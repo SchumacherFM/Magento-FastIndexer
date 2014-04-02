@@ -174,11 +174,10 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _isIndexTable()
     {
-        if(true === empty($this->_currentIndexerCode)){
-            Mage::throwException('Missing the name of the current indexer process :-( Hint: startIndexerProcess()');
+        if (true === empty($this->_currentIndexerCode)) {
+            return false; // event before_reindex_process_ not yet dispatched
         }
-
-        return Mage::getSingleton('schumacherfm_fastindexer/tableIndexMapper')->isIndexTable(
+        return Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper')->isIndexTable(
             $this->_currentIndexerCode, $this->_currentTableName
         );
     }

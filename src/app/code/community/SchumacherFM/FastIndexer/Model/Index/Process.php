@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   private!
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
+ */
 class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Process
 {
 
@@ -8,7 +15,6 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
     public function reindexAll()
     {
         Mage::dispatchEvent(self::BEFORE_REINDEX_PROCESS_EVENT . $this->getIndexerCode());
-
         parent::reindexAll();
     }
 }

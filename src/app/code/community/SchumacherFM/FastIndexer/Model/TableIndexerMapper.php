@@ -9,39 +9,114 @@
  */
 class SchumacherFM_FastIndexer_Model_TableIndexerMapper
 {
-//_index, _idx, _tmp, catalogsearch_fulltext, cataloginventory_stock_status,
-//                tag_summary, core_url_rewrite
-    public function isIndexTable($indexerCode, $tableName)
+    /**
+     * No need to provide the tablePrefix as this will be added afterwards in getTableName.
+     * No need to add catalog_product_flat or catalog_category_flat, these are special cases.
+     * First key indexerCode, second key table name
+     *
+     * @var array
+     */
+    protected $_map = array(
+
+        'catalog_product_attribute' => array(
+            'catalog_product_index_eav_tmp'         => 1,
+            'catalog_product_index_eav_idx'         => 1,
+            'catalog_product_index_eav'             => 1,
+            'catalog_product_index_eav_decimal_tmp' => 1,
+            'catalog_product_index_eav_decimal_idx' => 1,
+            'catalog_product_index_eav_decimal'     => 1,
+        ),
+        'cataloginventory_stock'    => array(
+            'cataloginventory_stock_status_idx'  => 1,
+            'catalog_product_bundle_stock_index' => 1,
+            'cataloginventory_stock_status'      => 1,
+        ),
+        'catalog_category_product'  => array(
+            'catalog_category_product_index'          => 1,
+            'catalog_category_product_index_enbl_idx' => 1,
+            'catalog_category_product_index_enbl_tmp' => 1,
+            'catalog_category_product_index_idx'      => 1,
+            'catalog_category_product_index_tmp'      => 1,
+            'catalog_category_anc_categs_index_idx'   => 1,
+            'catalog_category_anc_categs_index_tmp'   => 1,
+            'catalog_category_anc_products_index_idx' => 1,
+            'catalog_category_anc_products_index_tmp' => 1,
+        ),
+        'catalog_product_price'     => array(
+            'catalog_product_index_price_idx'             => 1,
+            'catalog_product_index_website'               => 1,
+            'catalog_product_index_tier_price'            => 1,
+            'catalog_product_index_group_price'           => 1,
+            'catalog_product_index_price_final_idx'       => 1,
+            'catalog_product_index_price_opt_agr_idx'     => 1,
+            'catalog_product_index_price_opt_idx'         => 1,
+            'catalog_product_index_price_downlod_idx'     => 1, // official table name
+            'catalog_product_index_price_download_idx'    => 1, // maybe some one fixed it ...
+            'catalog_product_index_price_cfg_opt_agr_idx' => 1,
+            'catalog_product_index_price_cfg_opt_idx'     => 1,
+            'catalog_product_index_price_bundle_idx'      => 1,
+            'catalog_product_index_price_bundle_sel_idx'  => 1,
+            'catalog_product_index_price_bundle_opt_idx'  => 1,
+            'catalog_product_index_price'                 => 1,
+        ),
+        'catalogsearch_fulltext'    => array(
+            'catalogsearch_fulltext' => 1,
+        ),
+        'tag_summary'               => array(
+            'tag_summary' => 1,
+        ),
+        'catalog_url'               => array(
+            'core_url_rewrite' => 1,
+        ),
+    );
+
+    /**
+     * due to singleton called only once
+     */
+    public function __construct()
     {
-        return strpos($tableName, '_index') !== false ||
-        strpos($tableName, '_idx') !== false;
+        Mage::dispatchEvent('fastindexer_mapping_table', array('mapper' => $this));
     }
 
-    protected function _getMapping()
+    /**
+     * @param string $indexerCode
+     * @param string $tableName
+     *
+     * @return bool
+     */
+    public function isIndexTable($indexerCode, $tableName)
     {
-        // @todo get all tables for insert/update for each indexer
-        $map = array(
-            'cataloginventory_stock' => array(
-                'cataloginventory_stock_status_idx'  => 1,
-                'catalog_product_bundle_stock_index' => 1,
-                'cataloginventory_stock_status'      => 1,
-            ),
-            'catalog_product_price'  => array(
-                'catalog_product_index_price_idx'             => 1,
-                'catalog_product_index_website'               => 1,
-                'catalog_product_index_tier_price'            => 1,
-                'catalog_product_index_group_price'           => 1,
-                'catalog_product_index_price_final_idx'       => 1,
-                'catalog_product_index_price_opt_agr_idx'     => 1,
-                'catalog_product_index_price_opt_idx'         => 1,
-                'catalog_product_index_price_downlod_idx'     => 1,
-                'catalog_product_index_price_cfg_opt_agr_idx' => 1,
-                'catalog_product_index_price_cfg_opt_idx'     => 1,
-                'catalog_product_index_price_bundle_idx'      => 1,
-                'catalog_product_index_price_bundle_sel_idx'  => 1,
-                'catalog_product_index_price_bundle_opt_idx'  => 1,
-                'catalog_product_index_price'                 => 1,
-            ),
-        );
+        return isset($this->_map[$indexerCode]) && isset($this->_map[$indexerCode][$tableName]);
+    }
+
+    /**
+     * @param string $indexerCode
+     * @param string $tableName
+     *
+     * @return $this
+     */
+    public function updateMap($indexerCode, $tableName)
+    {
+        $this->_map[$indexerCode][$tableName] = 1;
+        return $this;
+    }
+
+    /**
+     * @param array $map
+     *
+     * @return $this
+     */
+    public function setMap(array $map)
+    {
+        $this->_map = $map;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMap()
+    {
+        return $this->_map;
     }
 }

@@ -1,11 +1,14 @@
 FastIndexer
 ===========
 
+Pre-Alpha due to a nasty bug :-(
+
 - Integrates seamlessly into the existing Magento indexer process.
-- Does not change the core Magento indexer logic! No class rewrites!
-- Indexing blocks the frontend for only ~0.003 seconds
-- Speeds up the whole indexing process of your Magento store. You can enable or disable the module in the backend and test the speed difference by yourself.
+- Does not change the core Magento indexer logic!
+- Only one class rewrite! (Adding an event in `Mage_Index_Model_Process::reindexAll()`)
+- Indexing blocks the frontend for only ~0.003 seconds instead of minutes with the normal indexer.
 - The frontend will not be affected anymore by any reindex process.
+- Speeds up the whole indexing process of your Magento store. You can enable or disable the module in the backend and test the speed difference by yourself.
 - Full reindexing now even under high frontend load possible (Citation/Test needed ... ).
 - Limits the amount of SQL queries
 - Even integrates into your custom indexer processes (theoretically, talk to me).
@@ -41,7 +44,7 @@ The backend configuration section also checks for you if the current Magento cor
 
 ### Verifying Installation of PDO class
 
-FastIndexer comes with a custom `Pdo_MySQL` PHP class which also fixes two evil bugs in the default `Varien_Db_Adapter_Pdo_Mysql` class. It is 100% compatible. 
+FastIndexer comes with a custom `Pdo_MySQL` PHP class which also fixes two evil bugs in the default `Varien_Db_Adapter_Pdo_Mysql` class. It is 100% compatible.
 
 The FastIndexer PDO class must be configured in `app/etc/local.xml`.
 
@@ -82,17 +85,17 @@ Some indexer are doing complex operations for calculating differences between al
 
 Reindexing will be done in the so called Shadow Databases.
 
-Therefore the table swapping operation is done atomically after the reindexing, which means that no other session can access any of the index/flat tables while the swapping is running. 
+Therefore the table swapping operation is done atomically after the reindexing, which means that no other session can access any of the index/flat tables while the swapping is running.
 
 This swapping operation needs **~0.003 seconds**.
 
 If there are any database triggers associated with an index/flat table which is swapped to a different Shadow Database, then the swapping operation will fail.
 
-When the swapping operation is running and there are any locked tables or active transactions then the swapping will fail. 
+When the swapping operation is running and there are any locked tables or active transactions then the swapping will fail.
 
 **If the swapping fails nothing will break.** Just rerun the indexer.
 
-The current Magento database user must also have the ALTER and DROP privileges on the original table, and the CREATE and INSERT privileges on the new tables in the Shadow Databases.
+The current Magento database user must also have the ALTER and DROP privileges on the original table, and the SELECT,ALTER,DROP,CREATE and INSERT privileges on the new tables in the Shadow Databases.
 
 Performance
 -----------
@@ -129,7 +132,7 @@ Stock Status index was rebuilt successfully
 
 ### Shop C: Magento EE
 
-
+@todo
 
 ### Shop Z: Magento 1.7
 
@@ -207,7 +210,7 @@ Compatibility
 - Magento CE >= 1.6.2
 - php >= 5.2.0
 
-The FastIndexer will not run with Magento CE < 1.6.2 because elementary events are missing.
+The FastIndexer will not run with Magento CE < 1.6.2 because elementary events are missing. If you are interested in running FastIndexer with lower Magneto version write me, there is a solution.
 
 
 Support / Contribution
@@ -219,7 +222,7 @@ Report a bug using the issue tracker.
 Licence
 -------
 
-Proprietary. Ask for the price.
+Don't know. Maybe still closed source but you'll get it with a donation to [http://www.seashepherd.org/](http://www.seashepherd.org/)
 
 Author
 ------
