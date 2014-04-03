@@ -12,6 +12,17 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
     protected $_fastIndexerHelper = null;
 
     /**
+     * This value must be set in the local.xml
+     * node: config/global/resources/default_setup/connection/fiQuoteOpt
+     *
+     * @return bool
+     */
+    public function enableDbQuoteOptimization()
+    {
+        return isset($this->_config['fiQuoteOpt']) && $this->_config['fiQuoteOpt'] === '1';
+    }
+
+    /**
      * @param SchumacherFM_FastIndexer_Helper_Data $helper
      *
      * @return SchumacherFM_FastIndexer_Helper_Data
@@ -175,6 +186,62 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
      */
     public function quote($value, $type = null)
     {
-        return parent::quote($value, $type);
+        if (false === $this->enableDbQuoteOptimization()) {
+            return parent::quote($value, $type);
+        }
+        $this->_connect();
+
+        if ($value instanceof Zend_Db_Select) {
+            return '(' . $value->assemble() . ')';
+        }
+
+        if ($value instanceof Zend_Db_Expr) {
+            return $value->__toString();
+        }
+
+        if (is_array($value)) {
+            foreach ($value as &$val) {
+                $val = $this->quote($val, $type);
+            }
+            return implode(', ', $value);
+        }
+
+        if ($type !== null && array_key_exists($type = strtoupper($type), $this->_numericDataTypes)) {
+            $quotedValue = '0';
+            switch ($this->_numericDataTypes[$type]) {
+                case Zend_Db::INT_TYPE: // 32-bit integer
+                    $quotedValue = (string)intval($value);
+                    break;
+                case Zend_Db::BIGINT_TYPE: // 64-bit integer
+                    // ANSI SQL-style hex literals (e.g. x'[\dA-F]+')
+                    // are not supported here, because these are string
+                    // literals, not numeric literals.
+                    if (preg_match('/^(
+                          [+-]?                  # optional sign
+                          (?:
+                            0[Xx][\da-fA-F]+     # ODBC-style hexadecimal
+                            |\d+                 # decimal or octal, or MySQL ZEROFILL decimal
+                            (?:[eE][+-]?\d+)?    # optional exponent on decimals or octals
+                          )
+                        )/x',
+                        (string)$value, $matches)
+                    ) {
+                        $quotedValue = $matches[1];
+                    }
+                    break;
+                case Zend_Db::FLOAT_TYPE: // float or decimal
+                    $quotedValue = sprintf('%F', $value);
+            }
+            return $quotedValue;
+        }
+
+        // optimization, turning string values into real int/float
+        if (true === is_numeric($value)) {
+            $value = (float)$value;
+            if ($value === ($value | 0)) {
+                $value = (int)$value;
+            }
+        }
+        return $this->_quote($value);
     }
 }

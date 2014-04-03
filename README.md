@@ -19,8 +19,8 @@ The FastIndexer is only available on the command line.
 $ php/hhvm index.php reindexall
 ```
 
-Configuration options
----------------------
+Configuration options (Backend)
+-------------------------------
 
 Accessible via *System -> Configuration -> System -> FastIndexer*
 
@@ -71,6 +71,44 @@ You can create custom URL redirects at *Catalog -> URL Rewrite Management*. With
 ```SQL
 SELECT * FROM `core_url_rewrite` WHERE is_system=0 AND id_path NOT RLIKE '[0-9]+\_[0-9]+'
 ```
+
+Configuration options (local.xml)
+-------------------------------
+
+### Low Level Optimization
+
+This feature can be switched on even when FastIndexer is turned off.
+
+Low Level Optimization tries to convert stringified integer or float values into real integer resp. float values. This features applies on all queries. E.g. converts a query from `WHERE entity_id IN('433284', 433283)` to `WHERE entity_id IN(433284, 433283)` because mixing strings and integer values in a query will [MySQL slow down](http://www.mysqlperformanceblog.com/2006/09/08/why-index-could-refuse-to-work/). Query 1 needs: 0.0566s and optimized 0.0008s.
+
+Use at your own risk. Test thoroughly.
+
+To enable the low level quote() method optimization edit your local.xml and add the following entry in the node: `config/global/resources/default_setup/connection/fiQuoteOpt`.
+Use for node `fiQuoteOpt` the value 1 for enable or any other value for disabled.
+
+```
+<config>
+    <global>
+		...
+        <resources>
+            ...
+            <default_setup>
+                <connection>
+                    <host><![CDATA[localhost]]></host>
+                    <username>...</username>
+					...
+
+                    <!--FastIndexer quote() optimization: 1/0-->
+                    <fiQuoteOpt>1</fiQuoteOpt>
+
+                </connection>
+            </default_setup>
+        </resources>
+    </global>
+</config>
+```
+
+It must be set in the local.xml file because quote() method is called even before the Magento configuration is available.
 
 Explaining the operation of FastIndexer
 ---------------------------------------
