@@ -235,13 +235,48 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
             return $quotedValue;
         }
 
-        // optimization, turning string values into real int/float
+        return $this->_quote($this->castToNumeric($value));
+    }
+
+    /**
+     * Special handling for PDO query().
+     * All bind parameter names must begin with ':'.
+     *
+     * @param string|Zend_Db_Select $sql  The SQL statement with placeholders.
+     * @param mixed                 $bind An array of data or data itself to bind to the placeholders.
+     *
+     * @return Varien_Db_Statement_Pdo_Mysql
+     * @throws Zend_Db_Adapter_Exception To re-throw PDOException.
+     */
+    public function query($sql, $bind = array())
+    {
+        if (false === $this->enableDbQuoteOptimization()) {
+            return parent::query($sql, $bind);
+        }
+
+        if (is_array($bind) && count($bind) > 0) {
+            foreach ($bind as $k => $v) {
+                $bind[$k] = $this->castToNumeric($v);
+            }
+            Zend_Debug::dump($bind);
+        }
+        return parent::query($sql, $bind);
+    }
+
+    /**
+     * optimization, turning string values into real int/float
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function castToNumeric($value)
+    {
         if (true === is_numeric($value)) {
             $value = (float)$value;
             if ($value === ($value | 0)) {
-                $value = (int)$value;
+                return (int)$value;
             }
         }
-        return $this->_quote($value);
+        return $value;
     }
 }
