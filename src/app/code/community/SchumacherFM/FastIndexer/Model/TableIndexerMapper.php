@@ -68,6 +68,11 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
         'catalog_url'               => array(
             'core_url_rewrite' => 1,
         ),
+        'catalogpermissions'     => array(
+            'enterprise_catalogpermissions_index' => 1,
+            'enterprise_catalogpermissions_index_product' => 1,
+        ),
+
     );
 
     /**
