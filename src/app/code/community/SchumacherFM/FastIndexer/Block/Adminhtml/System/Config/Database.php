@@ -4,7 +4,7 @@
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
  * @copyright Copyright (c) http://www.schumacher.fm
- * @license   private!
+ * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 class SchumacherFM_FastIndexer_Block_Adminhtml_System_Config_Database extends Mage_Adminhtml_Block_System_Config_Form_Field

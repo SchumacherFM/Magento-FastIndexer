@@ -1,4 +1,11 @@
 <?php
+/**
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   see LICENSE.md file
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
+ */
 
 /**
  * Class SchumacherFM_FastIndexer_Test_Model_Db_Adapter_Pdo_MysqlTest

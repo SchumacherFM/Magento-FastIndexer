@@ -1,9 +1,9 @@
 <?xml version="1.0"?><!--
- /**
+/**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
  * @copyright Copyright (c) http://www.schumacher.fm
- * @license   private!
+ * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 -->
@@ -38,7 +38,7 @@
                             <show_in_store>0</show_in_store>
                             <comment>Only disable for development or testing.</comment>
                             <depends>
-                                <enable>1</enable>
+                                <is_active>1</is_active>
                             </depends>
                         </dropOldTable>
 
@@ -51,7 +51,7 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                             <depends>
-                                <enable>1</enable>
+                                <is_active>1</is_active>
                             </depends>
                         </dbName1>
                         <dbName2 translate="label,comment">
@@ -64,7 +64,7 @@
                             <show_in_store>0</show_in_store>
                             <comment>Name must be different from Shadow Database 1.</comment>
                             <depends>
-                                <enable>1</enable>
+                                <is_active>1</is_active>
                             </depends>
                         </dbName2>
                         <correctSetup translate="label">
@@ -93,7 +93,7 @@
                                  If set to yes no regex will be used.
                                 ]]></comment>
                             <depends>
-                                <enable>1</enable>
+                                <is_active>1</is_active>
                             </depends>
                         </urlRewriteCopyCustom>
 

@@ -4,7 +4,7 @@
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
  * @copyright Copyright (c) http://www.schumacher.fm
- * @license   private!
+ * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndexer_Model_AbstractTable
