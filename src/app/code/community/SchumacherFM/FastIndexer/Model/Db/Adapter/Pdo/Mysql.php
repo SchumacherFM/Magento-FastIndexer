@@ -258,13 +258,13 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
             foreach ($bind as $k => $v) {
                 $bind[$k] = $this->castToNumeric($v);
             }
-            Zend_Debug::dump($bind);
         }
         return parent::query($sql, $bind);
     }
 
     /**
      * optimization, turning string values into real int/float
+     *
      * @param mixed $value
      *
      * @return mixed
@@ -273,8 +273,8 @@ class SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql extends Varien_Db_Adap
     {
         if (true === is_numeric($value)) {
             $value = (float)$value;
-            if ($value === ($value | 0)) {
-                return (int)$value;
+            if ($value === ((float)($value | 0))) { // int to float
+                return ($value | 0); //int
             }
         }
         return $value;

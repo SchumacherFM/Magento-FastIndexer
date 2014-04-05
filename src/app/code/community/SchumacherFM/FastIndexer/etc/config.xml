@@ -51,6 +51,15 @@
         </helpers>
 
         <events>
+            <phpunit_suite_start_after>
+                <observers>
+                    <schumacherfm_fastindexer_store_notifier>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/mock_store</class>
+                        <method>notifyHelperThatStoreIsReady</method>
+                    </schumacherfm_fastindexer_store_notifier>
+                </observers>
+            </phpunit_suite_start_after>
             <resource_get_tablename>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -292,11 +301,18 @@
     <default>
         <schumacherfm>
             <fastindexer>
-                <enable>0</enable>
+                <is_active>0</is_active>
                 <echo>0</echo>
                 <dropOldTable>1</dropOldTable>
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
             </fastindexer>
         </schumacherfm>
     </default>
+    <phpunit>
+        <suite>
+            <modules>
+                <SchumacherFM_FastIndexer/>
+            </modules>
+        </suite>
+    </phpunit>
 </config>
