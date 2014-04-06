@@ -39,9 +39,9 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected $_helper = null;
 
-    public function __construct(SchumacherFM_FastIndexer_Helper_Data $helper = null)
+    public function __construct($helper = null)
     {
-        if (false === empty($helper)) {
+        if (false === empty($helper) && $helper instanceof SchumacherFM_FastIndexer_Helper_Data) {
             $this->_helper = $helper;
         }
     }

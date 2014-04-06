@@ -168,8 +168,8 @@ $ time -p php indexer.php --reindex <code>
 
 |Type       | FastIndexer | real     | user | sys| Query Count |
 |-----------|-----------|----------|-------|----|--------------|
-|reindexall | Disabled  | 14.209s | 5.836s | 0.370s | xxx |
-|reindexall | Enabled  |  7.490s |  4.265s | 0.179s | xxx |
+|reindexall | x  | 14.209s | 5.836s | 0.370s | 3275 |
+|reindexall | ✔︎  |  7.490s |  4.265s | 0.179s | 2702 |
 
 
 ### Shop C: Magento EE 1.12

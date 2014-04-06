@@ -188,7 +188,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
 
         // create all non flat index tables
         if (true === $this->_isIndexTable()) {
-            $sql = 'CREATE TABLE IF NOT EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+            $sql = 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
                 ' LIKE ' . $this->_getCurrentTableName(false, true);
             $this->_rawQuery($sql);
         }
