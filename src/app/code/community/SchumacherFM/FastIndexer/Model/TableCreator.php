@@ -48,11 +48,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected $_tableIndexerMapper = null;
 
-    public function __construct()
-    {
-        $this->_tableIndexerMapper = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper');
-    }
-
     /**
      * @param Varien_Event_Observer $observer
      *
@@ -60,9 +55,10 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function initIndexTables(Varien_Event_Observer $observer)
     {
-        if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+        if (false === $this->getHelper()->isEnabled()) {
             return null;
         }
+        $this->_tableIndexerMapper = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper');
         $this->_currentIndexerCode = str_replace(SchumacherFM_FastIndexer_Model_Index_Process::BEFORE_REINDEX_PROCESS_EVENT,
             '', $observer->getEvent()->getName());
         $this->_setResource(Mage::getSingleton('core/resource'));
@@ -100,7 +96,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     public function reMapTable(Varien_Event_Observer $observer)
     {
         // run only in shell and maybe later also via backend
-        if (false === $this->_initDone || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+        if (false === $this->_initDone || false === $this->getHelper()->isEnabled()) {
             return null;
         }
 

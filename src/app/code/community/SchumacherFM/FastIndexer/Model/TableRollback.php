@@ -9,6 +9,8 @@
  */
 class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
+    protected $_coreUrlRewrite = 'core_url_rewrite';
+
     /**
      * @param Varien_Event_Observer $event
      *
@@ -16,7 +18,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     public function rollbackIndexTables(Varien_Event_Observer $event = null)
     {
-        if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+        if (false === $this->getHelper()->isEnabled()) {
             return null;
         }
         /** @var SchumacherFM_FastIndexer_Model_TableCreator $tableCreator */
@@ -61,7 +63,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     protected function _handleOldShadowTable($tableName)
     {
-        if (true === Mage::helper('schumacherfm_fastindexer')->dropOldTable()) {
+        if (true === $this->getHelper()->dropOldTable()) {
             $this->_rawQuery('DROP TABLE IF EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_quote($tableName));
             return null;
         }
@@ -156,7 +158,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      */
     protected function _copyCustomUrlRewrites(array $_originalTableData)
     {
-        if (false === $this->_isUrlRewriteTable($_originalTableData['t'])) {
+        if (false === strpos($_originalTableData['t'], $this->_coreUrlRewrite)) {
             return false;
         }
 
@@ -169,7 +171,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             'id_path NOT RLIKE \'[0-9]+\_[0-9]+\'',
         );
         // copy everything
-        if (true === Mage::helper('schumacherfm_fastindexer')->enableUrlRewriteCopyCustom()) {
+        if (true === $this->getHelper()->enableUrlRewriteCopyCustom()) {
             $customUrls = array('1=1');
         }
 

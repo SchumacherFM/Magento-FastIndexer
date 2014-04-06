@@ -35,6 +35,29 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected $_currentDbName = null;
 
     /**
+     * @var SchumacherFM_FastIndexer_Helper_Data
+     */
+    protected $_helper = null;
+
+    public function __construct(SchumacherFM_FastIndexer_Helper_Data $helper = null)
+    {
+        if (false === empty($helper)) {
+            $this->_helper = $helper;
+        }
+    }
+
+    /**
+     * @return \SchumacherFM_FastIndexer_Helper_Data
+     */
+    public function getHelper()
+    {
+        if (null === $this->_helper) {
+            $this->_helper = Mage::helper('schumacherfm_fastindexer');
+        }
+        return $this->_helper;
+    }
+
+    /**
      * @param bool $quote
      *
      * @return string
@@ -142,26 +165,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @param string $tableName
-     *
-     * @return bool
-     */
-    protected function _isProductFlatTable($tableName)
-    {
-        return strpos($tableName, Mage_Catalog_Model_Product_Flat_Indexer::ENTITY) !== false;
-    }
-
-    /**
-     * @param $tableName
-     *
-     * @return bool
-     */
-    protected function _isUrlRewriteTable($tableName)
-    {
-        return strpos($tableName, 'core_url_rewrite') !== false;
-    }
-
-    /**
      * Creates a new config node for e.g. catalog_write resource so that the indexer will use a different PDO model
      * because flat indexer uses the table name as prefix for the index name and when there is a table name like
      * test.catalog_product_flat ... the index creation process will fail.
@@ -181,32 +184,32 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      *
      * @return boolean
      */
-    protected function _initShadowResourcePdoModel()
-    {
-        if ($this->_shadowResourceCreated === null) {
-
-            $types = array(
-                'catalog_write',
-                Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE
-            );
-
-            foreach ($types as $type) {
-                $nodePrefix     = 'global/resources/' . $type . '/connection';
-                $connectionNode = Mage::getConfig()->getNode($nodePrefix);
-
-                if ($connectionNode && !isset($connectionNode->use)) {
-                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig($type);
-                } else {
-                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
-                }
-
-                $connectDefault->type = 'pdo_mysql_findexer';
-                foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
-                    Mage::getConfig()->setNode($nodePrefix . '/' . $nodeName, $nodeValue);
-                }
-            }
-            $this->_shadowResourceCreated = true;
-        }
-        return $this->_shadowResourceCreated;
-    }
+//    protected function _initShadowResourcePdoModel()
+//    {
+//        if ($this->_shadowResourceCreated === null) {
+//
+//            $types = array(
+//                'catalog_write',
+//                Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE
+//            );
+//
+//            foreach ($types as $type) {
+//                $nodePrefix     = 'global/resources/' . $type . '/connection';
+//                $connectionNode = Mage::getConfig()->getNode($nodePrefix);
+//
+//                if ($connectionNode && !isset($connectionNode->use)) {
+//                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig($type);
+//                } else {
+//                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
+//                }
+//
+//                $connectDefault->type = 'pdo_mysql_findexer';
+//                foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
+//                    Mage::getConfig()->setNode($nodePrefix . '/' . $nodeName, $nodeValue);
+//                }
+//            }
+//            $this->_shadowResourceCreated = true;
+//        }
+//        return $this->_shadowResourceCreated;
+//    }
 }
