@@ -278,6 +278,44 @@
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_tag_summary>
+
+            <before_reindex_process_catalogpermissions>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableCreator</class>
+                        <method>startIndexerProcess</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </before_reindex_process_catalogpermissions>
+            <after_reindex_process_catalogpermissions>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableRollback</class>
+                        <method>rollbackTables</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </after_reindex_process_catalogpermissions>
+
+            <before_reindex_process_targetrule>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableCreator</class>
+                        <method>startIndexerProcess</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </before_reindex_process_targetrule>
+            <after_reindex_process_targetrule>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableRollback</class>
+                        <method>rollbackTables</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </after_reindex_process_targetrule>
         </events>
 
         <!--In etc/local.xml change the resources/default_setup/connection/type to pdo_mysql_findexer-->
