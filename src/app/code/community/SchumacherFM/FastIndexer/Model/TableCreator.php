@@ -72,17 +72,13 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     public function reMapTable(Varien_Event_Observer $observer)
     {
         // run only in shell and maybe later also via backend
-        if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+        if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
         $this->_currentTableName   = $observer->getEvent()->getTableName();
         $this->_currentTableSuffix = $observer->getEvent()->getTableSuffix();
         $this->_setResource($observer->getEvent()->getResource());
 
-        if (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
-            // table suffix is needed for the flat tables to append _[0-9]
-            $this->_createShadowTable();
-        }
         $this->_updateTableMapperForForeignKeys();
         return null;
     }

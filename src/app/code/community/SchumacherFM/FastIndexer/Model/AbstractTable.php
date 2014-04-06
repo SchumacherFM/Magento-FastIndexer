@@ -167,14 +167,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @return bool
-     */
-    protected function _runsOnCommandLine()
-    {
-        return isset($_SERVER['argv']) && isset($_SERVER['argc']) && (int)$_SERVER['argc'] > 0;
-    }
-
-    /**
      * @return array
      */
     protected function _getStoreIds()
