@@ -31,11 +31,35 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
 
     protected $_currentIndexerCode = null;
 
-
     public function initIndexTables(Varien_Event_Observer $observer)
     {
+        if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+            return null;
+        }
+
         $this->_currentIndexerCode = str_replace(SchumacherFM_FastIndexer_Model_Index_Process::BEFORE_REINDEX_PROCESS_EVENT,
             '', $observer->getEvent()->getName());
+
+        $this->_initIndexerTables();
+
+        return null;
+    }
+
+    /**
+     * @return bool
+     * @throws InvalidArgumentException
+     */
+    protected function _initIndexerTables()
+    {
+        $tables = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper')->getTablesByIndexerCode($this->_currentIndexerCode);
+        if (false === $tables) {
+            throw new InvalidArgumentException('Cannot find any FastIndexer table mapping for indexer: ' . $this->_currentIndexerCode);
+        }
+
+        foreach ($tables as $indexTable => $isSet) {
+        }
+
+        return true;
     }
 
     /**

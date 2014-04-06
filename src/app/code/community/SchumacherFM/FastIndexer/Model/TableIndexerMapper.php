@@ -130,4 +130,14 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
     {
         return $this->_map;
     }
+
+    /**
+     * @param $indexerCode
+     *
+     * @return array
+     */
+    public function getTablesByIndexerCode($indexerCode)
+    {
+        return isset($this->_map[$indexerCode]) ? $this->_map[$indexerCode] : false;
+    }
 }
