@@ -37,6 +37,23 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected $_currentIndexerCode = null;
 
     /**
+     * If not considered then recursing of get_resource_table_name events
+     *
+     * @var bool
+     */
+    protected $_initDone = false;
+
+    /**
+     * @var SchumacherFM_FastIndexer_Model_TableIndexerMapper
+     */
+    protected $_tableIndexerMapper = null;
+
+    public function __construct()
+    {
+        $this->_tableIndexerMapper = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper');
+    }
+
+    /**
      * @param Varien_Event_Observer $observer
      *
      * @return null
@@ -46,12 +63,11 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
-
         $this->_currentIndexerCode = str_replace(SchumacherFM_FastIndexer_Model_Index_Process::BEFORE_REINDEX_PROCESS_EVENT,
             '', $observer->getEvent()->getName());
-
+        $this->_setResource(Mage::getSingleton('core/resource'));
         $this->_initIndexerTables();
-
+        $this->_initDone = true;
         return null;
     }
 
@@ -61,17 +77,15 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _initIndexerTables()
     {
-        $tables = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper')->getTablesByIndexerCode($this->_currentIndexerCode);
+        $tables = $this->_tableIndexerMapper->getTablesByIndexerCode($this->_currentIndexerCode);
         if (false === $tables) {
             throw new InvalidArgumentException('Cannot find any FastIndexer table mapping for indexer: ' . $this->_currentIndexerCode);
         }
-
         foreach ($tables as $indexTable => $isSet) {
             $this->_currentTableName   = $indexTable;
             $this->_currentTableSuffix = null; // afaik only set for category tables
             $this->_createShadowTable();
         }
-
         return true;
     }
 
@@ -86,13 +100,14 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     public function reMapTable(Varien_Event_Observer $observer)
     {
         // run only in shell and maybe later also via backend
-        if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
+        if (false === $this->_initDone || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;
         }
+
         $this->_currentTableName   = $observer->getEvent()->getTableName();
         $this->_currentTableSuffix = $observer->getEvent()->getTableSuffix();
-        $this->_setResource($observer->getEvent()->getResource());
 
+        $this->_setResource($observer->getEvent()->getResource());
         $this->_updateResourceTableMapping();
         return null;
     }
@@ -105,16 +120,17 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     protected function _updateResourceTableMapping()
     {
         $tables = array(
-            'core_store'              => 1,
+            'core_store'              => 1, // due to recursion must be hardcoded ... i think
             'catalog_category_entity' => 1,
             'catalog_product_entity'  => 1,
         );
         // @todo add eventDispatch
-        $curTab = $this->_getCurrentTableName(false);
-        if (isset($tables[$curTab])) { // @todo check how often that is called
-            $this->_setMapper($curTab, $this->_getCurrentDbName() . '.' . $curTab);
+        $currentTable = $this->_getCurrentTableName(false);
+
+        if (isset($tables[$currentTable])) { // @todo check how often that is called
+            $this->_setMapper($currentTable, $this->_getCurrentDbName() . '.' . $currentTable);
         } elseif (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
-            $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
+            $this->_setMapper($currentTable, $this->_getShadowDbName() . '.' . $currentTable);
         }
     }
 
@@ -171,19 +187,9 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _createShadowTableReal()
     {
-        $_isProductFlatTable = $this->_isProductFlatTable($this->_getCurrentTableName(false));
-        // drop product flat tables; check just in case something fails we drop the product_flat table
-        if (true === $_isProductFlatTable) {
-            foreach ($this->_getStoreIds() as $storeId) {
-                $this->_currentTableSuffix = $storeId;
-                $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
-                $this->_currentTableSuffix = null;
-            }
-            return true;
-        } else {
-            // if index table or category_flat table then drop in shadow db
-            $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
-        }
+        // if index table or category_flat table then drop in shadow db
+        $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+
         // create all non flat index tables
         if (true === $this->_isIndexTable()) {
             $sql = 'CREATE TABLE IF NOT EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
@@ -194,29 +200,30 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     }
 
     /**
+     * <old>
      * Esp. when catalog_product_price runs which calls the stock indexer first and when then the price indexer
-     * run the stocks will get truncated :-(
+     * run, the stocks will get truncated :-(
      *
      * when catalogsearch_fulltext runs then it requires the table cataloginventory_stock_status and this class
      * will drop that table asap when not checking if the tables cataloginventory_stock_status indexer is running.
      * so we need a mapping from table name to indexer name
-     *
-     * catalogsearch_fulltext can be removed because the indexer of catalogsearch_fulltext has a cleanIndex
-     * method in Mage_CatalogSearch_Model_Resource_Fulltext_Engine which deletes the table.
-     * also the inventory
-     * truncate maybe more faster and accurate ???
-     *
-     * But in total the tables won't be empty with FastIndexer and the frontend user will nothing notice. So keep them in here.
+     * </old>
      * @return bool
      */
     protected function _isIndexTable()
     {
-        if (true === empty($this->_currentIndexerCode)) {
-            return false; // event before_reindex_process_ not yet dispatched
-        }
-        return Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper')->isIndexTable(
-            $this->_currentIndexerCode, $this->_currentTableName
-        );
+        return $this->_tableIndexerMapper->isIndexTable($this->_currentIndexerCode, $this->_getCurrentTableName(true, false));
+    }
+
+    /**
+     * When the default indexer of the flat table runs, it drops first the flat table and then creates it new.
+     * used connection_name: catalog_write
+     *
+     * @return bool
+     */
+    protected function _isFlatTable()
+    {
+        return $this->_tableIndexerMapper->isFlatTable($this->_currentIndexerCode, $this->_getCurrentTableName(true, false));
     }
 
     /**
@@ -238,16 +245,5 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     {
         $this->_createdTables = array();
         return $this;
-    }
-
-    /**
-     * When the default indexer of the flat table runs. it drops first the flat table and then creates it new.
-     * used connection_name: catalog_write
-     *
-     * @return bool
-     */
-    protected function _isFlatTable()
-    {
-        return Mage::helper('schumacherfm_fastindexer')->isFlatTablePrefix($this->_currentTableName);
     }
 }

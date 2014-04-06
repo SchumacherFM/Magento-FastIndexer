@@ -15,11 +15,6 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     const CONFIG_DB_NAME = 'global/resources/default_setup/connection/dbname';
 
     /**
-     * Table prefix for flat tables
-     */
-    const CATALOG_CATEGORY_FLAT = 'catalog_category_flat';
-
-    /**
      * @var boolean
      */
     protected $_isPdoFastIndexerInstance = null;
@@ -174,17 +169,5 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function enableUrlRewriteCopyCustom()
     {
         return Mage::getStoreConfigFlag('system/fastindexer/urlRewriteCopyCustom');
-    }
-
-    /**
-     * @param string $currentTableName
-     *
-     * @return bool
-     */
-    public function isFlatTablePrefix($currentTableName)
-    {
-        return
-            $currentTableName === self::CATALOG_CATEGORY_FLAT ||
-            $currentTableName === Mage_Catalog_Model_Product_Flat_Indexer::ENTITY;
     }
 }

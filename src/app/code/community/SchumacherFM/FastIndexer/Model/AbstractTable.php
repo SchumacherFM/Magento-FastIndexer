@@ -16,11 +16,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
     /**
-     * @var array
-     */
-    protected $_stores = null;
-
-    /**
      * @var Mage_Core_Model_Resource
      */
     protected $_resource = null;
@@ -164,22 +159,6 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _isUrlRewriteTable($tableName)
     {
         return strpos($tableName, 'core_url_rewrite') !== false;
-    }
-
-    /**
-     * @return array
-     */
-    protected function _getStoreIds()
-    {
-        if (null === $this->_stores) {
-            $stores        = Mage::app()->getStores();
-            $this->_stores = array();
-            foreach ($stores as $store) {
-                /** @var Mage_Core_Model_Store $store */
-                $this->_stores[] = (int)$store->getId();
-            }
-        }
-        return $this->_stores;
     }
 
     /**

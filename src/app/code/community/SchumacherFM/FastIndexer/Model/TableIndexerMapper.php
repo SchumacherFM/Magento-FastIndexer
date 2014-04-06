@@ -16,7 +16,7 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
      *
      * @var array
      */
-    protected $_map = array(
+    protected $_mapIndexTables = array(
 
         'catalog_product_attribute' => array(
             'catalog_product_index_eav_tmp'         => 1,
@@ -83,11 +83,64 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
     );
 
     /**
+     * IndexerCode => empty
+     *
+     * @var array
+     */
+    protected $_mapFlatTables = array(
+        'catalog_product_flat'  => array(
+            Mage_Catalog_Model_Product_Flat_Indexer::ENTITY => 1, // hardcoded due to recursion and needed for isFlatTable
+        ),
+        'catalog_category_flat' => array(),
+    );
+    /**
+     * @var array
+     */
+    protected $_stores = null;
+
+    /**
      * due to singleton called only once
      */
-    public function __construct()
+    public function __construct(array $stores = null)
     {
+        if (false === empty($stores)) {
+            $this->_stores = $stores;
+        }
+        $this->_initFlatTables();
         Mage::dispatchEvent('fastindexer_mapping_table', array('mapper' => $this));
+    }
+
+    /**
+     * @return array
+     */
+    public function getStores()
+    {
+        if (null === $this->_stores) {
+            $this->_stores = Mage::app()->getStores();
+        }
+        return $this->_stores;
+    }
+
+    /**
+     *
+     */
+    protected function _initFlatTables()
+    {
+        /** @var Mage_Catalog_Model_Resource_Category_Flat $flatCategory */
+        $flatCategory = Mage::getResourceModel('catalog/category_flat'); // no singleton because of the _tables cache!!!
+        /** @var Mage_Catalog_Model_Resource_Product_Flat_Indexer $flatProduct */
+        $flatProduct = Mage::getResourceModel('catalog/product_flat_indexer'); // no singleton because of the _tables cache!!!
+
+        foreach ($this->_mapFlatTables as $indexerCode => &$empty) {
+            foreach ($this->getStores() as $store) {
+                /** @var Mage_Core_Model_Store $store */
+                $flatTableName         = strpos($indexerCode, 'category_flat') !== false
+                    ? $flatCategory->getMainStoreTable($store->getId())
+                    : $flatProduct->getFlatTableName($store->getId());
+                $empty[$flatTableName] = 1;
+            }
+        }
+        // reset table cache in resource model Mage_Core_Model_Resource_Db_Abstract
     }
 
     /**
@@ -98,7 +151,18 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
      */
     public function isIndexTable($indexerCode, $tableName)
     {
-        return isset($this->_map[$indexerCode]) && isset($this->_map[$indexerCode][$tableName]);
+        return isset($this->_mapIndexTables[$indexerCode]) && isset($this->_mapIndexTables[$indexerCode][$tableName]);
+    }
+
+    /**
+     * @param string $indexerCode
+     * @param string $tableName
+     *
+     * @return bool
+     */
+    public function isFlatTable($indexerCode, $tableName)
+    {
+        return isset($this->_mapFlatTables[$indexerCode]) && isset($this->_mapFlatTables[$indexerCode][$tableName]);
     }
 
     /**
@@ -107,9 +171,9 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
      *
      * @return $this
      */
-    public function updateMap($indexerCode, $tableName)
+    public function updateIndexMap($indexerCode, $tableName)
     {
-        $this->_map[$indexerCode][$tableName] = 1;
+        $this->_mapIndexTables[$indexerCode][$tableName] = 1;
         return $this;
     }
 
@@ -118,18 +182,49 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
      *
      * @return $this
      */
-    public function setMap(array $map)
+    public function setIndexMap(array $map)
     {
-        $this->_map = $map;
+        $this->_mapIndexTables = $map;
         return $this;
     }
 
     /**
      * @return array
      */
-    public function getMap()
+    public function getIndexMap()
     {
-        return $this->_map;
+        return $this->_mapIndexTables;
+    }
+
+    /**
+     * @param string $indexerCode
+     * @param string $tableName
+     *
+     * @return $this
+     */
+    public function updateFlatMap($indexerCode, $tableName)
+    {
+        $this->_mapFlatTables[$indexerCode][$tableName] = 1;
+        return $this;
+    }
+
+    /**
+     * @param array $map
+     *
+     * @return $this
+     */
+    public function setFlatMap(array $map)
+    {
+        $this->_mapFlatTables = $map;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFlatMap()
+    {
+        return $this->_mapFlatTables;
     }
 
     /**
@@ -139,6 +234,13 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
      */
     public function getTablesByIndexerCode($indexerCode)
     {
-        return isset($this->_map[$indexerCode]) ? $this->_map[$indexerCode] : false;
+        $tables = isset($this->_mapIndexTables[$indexerCode]) ? $this->_mapIndexTables[$indexerCode] : false;
+        if (false === $tables) {
+            $tables = isset($this->_mapFlatTables[$indexerCode]) ? $this->_mapFlatTables[$indexerCode] : false;
+            if (isset($tables[Mage_Catalog_Model_Product_Flat_Indexer::ENTITY])) {
+                unset($tables[Mage_Catalog_Model_Product_Flat_Indexer::ENTITY]);
+            }
+        }
+        return $tables;
     }
 }
