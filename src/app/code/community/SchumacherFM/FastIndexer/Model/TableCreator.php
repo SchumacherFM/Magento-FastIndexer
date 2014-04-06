@@ -29,8 +29,18 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected $_isIndexTableListCache = array();
 
+    /**
+     * Name of the current indexer
+     *
+     * @var string
+     */
     protected $_currentIndexerCode = null;
 
+    /**
+     * @param Varien_Event_Observer $observer
+     *
+     * @return null
+     */
     public function initIndexTables(Varien_Event_Observer $observer)
     {
         if (false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
@@ -57,6 +67,9 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
 
         foreach ($tables as $indexTable => $isSet) {
+            $this->_currentTableName   = $indexTable;
+            $this->_currentTableSuffix = null; // afaik only set for category tables
+            $this->_createShadowTable();
         }
 
         return true;
@@ -64,6 +77,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
 
     /**
      * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
+     *       it only adds the shadow db name aka schema to the table
      *
      * @param Varien_Event_Observer $observer
      *
@@ -79,25 +93,40 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_currentTableSuffix = $observer->getEvent()->getTableSuffix();
         $this->_setResource($observer->getEvent()->getResource());
 
-        $this->_updateTableMapperForForeignKeys();
+        $this->_updateResourceTableMapping();
         return null;
     }
 
     /**
      * for specific tables we need to add the default database name because creating a flat table will have foreign keys
-     * to other core tables in the default database
+     * to other core tables in the default database.
+     * for the rest we just add the shadow db name
      */
-    protected function _updateTableMapperForForeignKeys()
+    protected function _updateResourceTableMapping()
     {
         $tables = array(
             'core_store'              => 1,
             'catalog_category_entity' => 1,
             'catalog_product_entity'  => 1,
         );
+        // @todo add eventDispatch
         $curTab = $this->_getCurrentTableName(false);
         if (isset($tables[$curTab])) { // @todo check how often that is called
             $this->_setMapper($curTab, $this->_getCurrentDbName() . '.' . $curTab);
+        } elseif (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
+            $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
         }
+    }
+
+    /**
+     * @param string $_originalTableName
+     * @param string $_shadowTableName
+     *
+     * @return Mage_Core_Model_Resource
+     */
+    protected function _setMapper($_originalTableName, $_shadowTableName)
+    {
+        return $this->_getResource()->setMappedTableName($_originalTableName, $_shadowTableName);
     }
 
     /**
@@ -119,7 +148,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     }
 
     /**
-     * this needs to be execute in another DB because index names are unique within a DB and if the create the shadow tables
+     * this needs to be execute in another DB because index names are unique within a DB and if we create the shadow tables
      * within the same db as magento then the index names are different
      * @return $this
      */
@@ -128,7 +157,6 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         if (false === isset($this->_createdTables[$this->_getCurrentTableName()])) {
             $this->_createShadowTableReal();
         }
-        $this->_setMapper($this->_getCurrentTableName(false), $this->_getShadowDbName() . '.' . $this->_getCurrentTableName(false));
 
         $this->_createdTables[$this->_getCurrentTableName()] = array(
             't' => $this->_getCurrentTableName(false),
@@ -143,38 +171,26 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     protected function _createShadowTableReal()
     {
-        // if index table or category_flat table then drop in shadow db
-        if (true === $this->_isIndexTable() || (true === $this->_isFlatTable() && false === $this->_isProductFlatTable($this->_getCurrentTableName(false)))) {
-            $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
-        }
-
+        $_isProductFlatTable = $this->_isProductFlatTable($this->_getCurrentTableName(false));
         // drop product flat tables; check just in case something fails we drop the product_flat table
-        if (true === $this->_isProductFlatTable($this->_getCurrentTableName(false))) {
+        if (true === $_isProductFlatTable) {
             foreach ($this->_getStoreIds() as $storeId) {
                 $this->_currentTableSuffix = $storeId;
                 $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
                 $this->_currentTableSuffix = null;
             }
             return true;
+        } else {
+            // if index table or category_flat table then drop in shadow db
+            $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
         }
         // create all non flat index tables
         if (true === $this->_isIndexTable()) {
-            $sql = 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
-                ' LIKE ' . $this->_quote($this->_currentTableName);
+            $sql = 'CREATE TABLE IF NOT EXISTS ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+                ' LIKE ' . $this->_getCurrentTableName(false, true);
             $this->_rawQuery($sql);
         }
         return true;
-    }
-
-    /**
-     * @param string $_originalTableName
-     * @param string $_shadowTableName
-     *
-     * @return Mage_Core_Model_Resource
-     */
-    protected function _setMapper($_originalTableName, $_shadowTableName)
-    {
-        return $this->_getResource()->setMappedTableName($_originalTableName, $_shadowTableName);
     }
 
     /**

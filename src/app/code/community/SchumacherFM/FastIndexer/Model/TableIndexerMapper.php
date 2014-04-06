@@ -27,9 +27,10 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
             'catalog_product_index_eav_decimal'     => 1,
         ),
         'cataloginventory_stock'    => array(
-            'cataloginventory_stock_status_idx'  => 1,
-            'catalog_product_bundle_stock_index' => 1,
             'cataloginventory_stock_status'      => 1,
+            'cataloginventory_stock_status_idx'  => 1,
+            'cataloginventory_stock_status_tmp'  => 1,
+            'catalog_product_bundle_stock_index' => 1,
         ),
         'catalog_category_product'  => array(
             'catalog_category_product_index'          => 1,
