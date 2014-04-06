@@ -56,16 +56,17 @@
                     <schumacherfm_fastindexer_store_notifier>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/mock_store</class>
-                        <method>notifyHelperThatStoreIsReady</method>
+                        <method>notifyHelperThatStoresHasBeenLoaded</method>
                     </schumacherfm_fastindexer_store_notifier>
                 </observers>
             </phpunit_suite_start_after>
+
             <resource_get_tablename>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>createTable</method>
+                        <method>reMapTable</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </resource_get_tablename>
@@ -75,7 +76,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalog_product_attribute>
@@ -84,7 +85,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_product_attribute>
@@ -94,7 +95,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalog_product_price>
@@ -103,7 +104,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_product_price>
@@ -113,7 +114,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalog_url>
@@ -122,7 +123,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_url>
@@ -132,7 +133,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalog_product_flat>
@@ -141,7 +142,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_product_flat>
@@ -151,7 +152,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalog_category_flat>
@@ -160,7 +161,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_category_flat>
@@ -170,7 +171,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalog_category_product>
@@ -179,7 +180,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalog_category_product>
@@ -189,7 +190,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalogsearch_fulltext>
@@ -198,7 +199,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalogsearch_fulltext>
@@ -208,7 +209,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_cataloginventory_stock>
@@ -217,7 +218,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_cataloginventory_stock>
@@ -227,7 +228,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalogpermissions>
@@ -236,7 +237,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalogpermissions>
@@ -246,7 +247,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_targetrule>
@@ -255,7 +256,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_targetrule>
@@ -265,7 +266,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_tag_summary>
@@ -274,7 +275,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_tag_summary>
@@ -284,7 +285,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_catalogpermissions>
@@ -293,7 +294,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_catalogpermissions>
@@ -303,7 +304,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableCreator</class>
-                        <method>startIndexerProcess</method>
+                        <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </before_reindex_process_targetrule>
@@ -312,7 +313,7 @@
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/tableRollback</class>
-                        <method>rollbackTables</method>
+                        <method>rollbackIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
             </after_reindex_process_targetrule>

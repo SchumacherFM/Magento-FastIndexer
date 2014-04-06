@@ -27,7 +27,7 @@ class SchumacherFM_FastIndexer_Model_Mock_Store
      * @fire phpunit_suite_start_after
      *
      */
-    public function notifyHelperThatStoreIsReady()
+    public function notifyHelperThatStoresHasBeenLoaded()
     {
         Mage::helper('schumacherfm_fastindexer')->reinitHelper();
     }

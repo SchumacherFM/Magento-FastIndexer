@@ -14,7 +14,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
      *
      * @return bool
      */
-    public function rollbackTables(Varien_Event_Observer $event = null)
+    public function rollbackIndexTables(Varien_Event_Observer $event = null)
     {
         if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
             return null;

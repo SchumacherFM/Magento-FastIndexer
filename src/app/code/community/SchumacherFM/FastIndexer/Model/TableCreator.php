@@ -31,7 +31,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
 
     protected $_currentIndexerCode = null;
 
-    public function startIndexerProcess(Varien_Event_Observer $observer)
+
+    public function initIndexTables(Varien_Event_Observer $observer)
     {
         $this->_currentIndexerCode = str_replace(SchumacherFM_FastIndexer_Model_Index_Process::BEFORE_REINDEX_PROCESS_EVENT,
             '', $observer->getEvent()->getName());
@@ -44,7 +45,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      *
      * @return bool
      */
-    public function createTable(Varien_Event_Observer $observer)
+    public function reMapTable(Varien_Event_Observer $observer)
     {
         // run only in shell and maybe later also via backend
         if (false === $this->_runsOnCommandLine() || false === Mage::helper('schumacherfm_fastindexer')->isEnabled()) {
