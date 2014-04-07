@@ -112,8 +112,13 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      *
      * @return $this
      */
-    protected function _setResource(Mage_Core_Model_Resource $resource)
+    public function setResource($resource = null)
     {
+        if (null === $this->_resource && null !== $resource) {
+            $this->_resource = $resource;
+        } elseif (null === $this->_resource) {
+            $this->_resource = Mage::getSingleton('core/resource');
+        }
         $this->_resource = $resource;
         return $this;
     }

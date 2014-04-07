@@ -60,8 +60,8 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         }
         $this->_tableIndexerMapper = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper');
         $this->_currentIndexerCode = str_replace(SchumacherFM_FastIndexer_Model_Index_Process::BEFORE_REINDEX_PROCESS_EVENT,
-            '', $observer->getEvent()->getName());
-        $this->_setResource(Mage::getSingleton('core/resource'));
+            '', $observer->getName());
+        $this->setResource();
         $this->_initIndexerTables();
         $this->_initDone = true;
         return null;

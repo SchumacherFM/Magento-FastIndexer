@@ -27,7 +27,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         if (empty($tablesToRename)) {
             return null;
         }
-        $this->_setResource(Mage::getSingleton('core/resource'));
+        $this->setResource();
 
         foreach ($tablesToRename as $_originalTableData) {
             $this->_renameShadowTables($_originalTableData);

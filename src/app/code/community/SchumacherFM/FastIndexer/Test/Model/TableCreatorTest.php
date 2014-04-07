@@ -17,7 +17,7 @@ class SchumacherFM_FastIndexer_Test_Model_TableCreatorTest extends EcomDev_PHPUn
     protected $class = 'SchumacherFM_FastIndexer_Model_TableCreator';
 
     /**
-     * @return SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql
+     * @return SchumacherFM_FastIndexer_Model_TableCreator
      */
     public function getInstance()
     {
@@ -43,17 +43,41 @@ class SchumacherFM_FastIndexer_Test_Model_TableCreatorTest extends EcomDev_PHPUn
     /**
      * @test
      */
-    public function itShouldHaveFourMethods()
+    public function itShouldHaveMethods()
     {
-        $methods  = array(
+        $methods = array(
             'initIndexTables',
             'reMapTable',
             'getTables',
             'unsetTables',
+            '__construct',
+            'getHelper',
+            'setResource',
         );
-        $instance = $this->getInstance();
-        foreach ($methods as $method) {
-            $this->assertTrue(method_exists($instance, $method), 'Missing method: ' . $method);
-        }
+        $this->assertSame($methods, get_class_methods($this->getInstance()));
+    }
+
+    /**
+     * @test
+     */
+    public function itShouldCreateSqlCodeForIndexerTablesBeforeReindex()
+    {
+        $instance  = $this->getInstance();
+        $mockEvent = $this->getMock('Varien_Event_Observer', array('getName'));
+        $mockEvent->expects($this->once())
+            ->method('getName')
+            ->with()
+            ->will($this->returnValue('before_reindex_process_catalog_product_attribute'));
+
+        $mockResource = $this->getResourceModelMock('core/resource',array(
+            'setMappedTableName'
+        ));
+        $mockResource->expects($this->any())
+            ->method('setMappedTableName')
+            ->with()
+            ->will($this->returnSelf());
+
+        $instance->setResource($mockResource);
+        $instance->initIndexTables($mockEvent);
     }
 }
