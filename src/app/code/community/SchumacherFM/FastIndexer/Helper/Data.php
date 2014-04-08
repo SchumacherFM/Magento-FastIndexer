@@ -166,6 +166,14 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @return bool
      */
+    public function optimizeTables()
+    {
+        return Mage::getStoreConfigFlag('system/fastindexer/optimizeTables');
+    }
+
+    /**
+     * @return bool
+     */
     public function enableUrlRewriteCopyCustom()
     {
         return Mage::getStoreConfigFlag('system/fastindexer/urlRewriteCopyCustom');

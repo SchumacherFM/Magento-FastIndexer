@@ -9,6 +9,11 @@
  */
 class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
+    /**
+     * @var array
+     */
+    protected $_tableEngines = null;
+
     protected $_coreUrlRewrite = 'core_url_rewrite';
 
     /**
@@ -30,6 +35,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $this->setResource();
 
         foreach ($tablesToRename as $_originalTableData) {
+            $this->_optimizeTable($_originalTableData);
             $this->_renameShadowTables($_originalTableData);
 
             // reset table names ... if necessary
@@ -38,6 +44,40 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         // due to singleton pattern ... reset Tables
         $tableCreator->unsetTables();
         return null;
+    }
+
+    /**
+     * @param array $tableData
+     *
+     * @return bool
+     */
+    protected function _optimizeTable(array $tableData)
+    {
+        if (true !== $this->getHelper()->optimizeTables()) {
+            return false;
+        }
+        $tableName = $tableData['t'] . (empty($tableData['s']) ? '' : '_' . $tableData['s']);
+        if ('InnoDB' === $this->_getTableEngine($tableName)) {
+        }
+
+        switch ($this->_getTableEngine($tableName)) {
+            case 'InnoDB':
+                $this->_getConnection()->changeTableEngine($tableName, 'innodb', $this->_getShadowDbName(false, 1));
+                break;
+            case 'MyISAM':
+                $this->_rawQuery('OPTIMIZE TABLE ...');
+                break;
+        }
+
+        return true;
+    }
+
+    protected function _getTableEngine($tableName)
+    {
+        if (null === $this->_tableEngines) {
+            $this->_getConnection()->showTableStatus();
+        }
+        return isset($this->_tableEngines[$tableName]) ? $this->_tableEngines[$tableName] : false;
     }
 
     /**
