@@ -106,7 +106,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
         $this->_currentTableName   = $observer->getEvent()->getTableName();
         $this->_currentTableSuffix = $observer->getEvent()->getTableSuffix();
 
-        $this->_setResource($observer->getEvent()->getResource());
+        $this->setResource($observer->getEvent()->getResource());
         $this->_updateResourceTableMapping();
         return null;
     }

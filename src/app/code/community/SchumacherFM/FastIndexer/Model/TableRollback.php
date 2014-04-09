@@ -9,6 +9,8 @@
  */
 class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
+    const TABLE_PREFIX_PREFIX = 'zz';
+
     /**
      * @var array
      */
@@ -43,10 +45,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         }
         // due to singleton pattern ... reset Tables
         $tableCreator->unsetTables();
+        $this->_tableEngines = null; // reset table engines for the current indexer
         return null;
     }
 
     /**
+     * http://dev.mysql.com/doc/refman/5.5/en/optimize-table.html
      * @param array $tableData
      *
      * @return bool
@@ -57,25 +61,38 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             return false;
         }
         $tableName = $tableData['t'] . (empty($tableData['s']) ? '' : '_' . $tableData['s']);
-        if ('InnoDB' === $this->_getTableEngine($tableName)) {
-        }
 
         switch ($this->_getTableEngine($tableName)) {
-            case 'InnoDB':
-                $this->_getConnection()->changeTableEngine($tableName, 'innodb', $this->_getShadowDbName(false, 1));
+            case 'innodb':
+                $this->_getConnection()->changeTableEngine($tableName, 'InnoDB', $this->_getShadowDbName(false, 1));
                 break;
-            case 'MyISAM':
-                $this->_rawQuery('OPTIMIZE TABLE ...');
+            case 'myisam':
+                $result = $this->_rawQuery('OPTIMIZE TABLE ' . $this->_getShadowDbName(true, 1) . '.' . $this->_quote($tableName));
+                Zend_Debug::dump($result->fetch());
+                exit;
                 break;
+            default:
         }
 
         return true;
     }
 
+    /**
+     * @param string $tableName
+     *
+     * @return bool|string
+     */
     protected function _getTableEngine($tableName)
     {
         if (null === $this->_tableEngines) {
-            $this->_getConnection()->showTableStatus();
+            $this->_tableEngines = array();
+            /** @var Varien_Db_Statement_Pdo_Mysql $result */
+            $result = $this->_rawQuery('SHOW TABLE STATUS FROM ' . $this->_getShadowDbName(true, 1) .
+                ' WHERE `name` NOT LIKE \'' . self::TABLE_PREFIX_PREFIX . '\'');
+            $rows   = $result->fetchAll();
+            foreach ($rows as $row) {
+                $this->_tableEngines[$row['Name']] = strtolower($row['Engine']);
+            }
         }
         return isset($this->_tableEngines[$tableName]) ? $this->_tableEngines[$tableName] : false;
     }
@@ -142,6 +159,14 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     }
 
     /**
+     * @return string
+     */
+    protected function _getOldTablePrefix()
+    {
+        return self::TABLE_PREFIX_PREFIX . date('Ymd_His') . '_';
+    }
+
+    /**
      * @param array $tableData / two keys: t = table name; s = suffix
      *
      * @return string
@@ -149,7 +174,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     protected function _renameTable(array $tableData)
     {
         $tableName = $tableData['t'] . (empty($tableData['s']) ? '' : '_' . $tableData['s']);
-        $oldTable  = 'z' . date('Ymd_His') . '_' . $tableName;
+        $oldTable  = $this->_getOldTablePrefix() . $tableName;
         $tables    = array();
 
         // if in the default DB the table will not exists, simply rename without any other movings.

@@ -111,15 +111,15 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      * @param Mage_Core_Model_Resource $resource
      *
      * @return $this
+     * @throws InvalidArgumentException
      */
     public function setResource($resource = null)
     {
-        if (null === $this->_resource && null !== $resource) {
+        if (null !== $resource) {
             $this->_resource = $resource;
         } elseif (null === $this->_resource) {
             $this->_resource = Mage::getSingleton('core/resource');
         }
-        $this->_resource = $resource;
         return $this;
     }
 
