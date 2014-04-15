@@ -172,7 +172,7 @@ $ time -p php indexer.php --reindex <code>
 |reindexall | ✔︎  |  7.490s |  4.265s | 0.179s | 2702 |
 
 
-### Shop C: Magento EE 1.12
+### Shop 03: Magento EE 1.12
 
 - 3 store views
 - 66 categories
@@ -199,8 +199,18 @@ $ time -p php indexer.php --reindex <code>
 
 * added 3701 additional URLs due to the rewrite bug in the URL indexer
 
+### Shop 08: Magento EE 1.12
 
-### Shop Z: Magento 1.7
+- 4 store views
+- ~ 240 categories
+- ~ 5000 products
+
+|Type                      | FastIndexer | real     | user | sys| Query Count |
+|--------------------------|-------------|----------|-------|----|--------------|
+|catalog_product_attribute | x    | 0.00s | 0.00s | 0.00s | 0 |
+
+
+### Shop 26: Magento 1.7
 
 - One store view
 - ~ 15.500 categories
@@ -211,54 +221,6 @@ $ time -p php indexer.php --reindex <code>
 |-----------|----------|-------|----|--------------|
 | Disabled  | 14m8.919s | 5m0.248s | 0m9.695s | @todo |
 | Enabled  | 10m37.517s | 4m51.361s | 0m8.864s | @todo |
-
-
-### catalog_url
-
-```
-$ time php indexer.php --reindex catalog_url
-Catalog URL Rewrites index was rebuilt successfully
-```
-
-    :::text
-    run real        user        sys
-
-
-
-### catalog_product_attribute
-
-
-```
-$ time php indexer.php --reindex catalog_product_attribute
-Product Attributes index was rebuilt successfully
-```
-
-
-    :::text
-    run real        user        sys
-
-
-### catalog_product_price
-
-
-```
-$ time php indexer.php --reindex catalog_product_price
-Product Prices index was rebuilt successfully
-```
-
-    :::text
-    run real        user        sys
-
-
-### catalog_product_flat
-
-
-```
-$ time php indexer.php --reindex catalog_product_flat
-```
-
-    :::text
-    run real        user        sys
 
 
 About/History
