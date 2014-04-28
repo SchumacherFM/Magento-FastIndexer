@@ -107,7 +107,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function getShadowDbName($index = 1)
     {
         if (null === $this->_shadowDbName) {
-            $this->_shadowDbName = $this->getStore()->getConfig('system/fastindexer/dbName' . $index);
+            $this->_shadowDbName = $this->getStore()->getConfig('fastindexer/databases/dbName' . $index);
             if (empty($this->_shadowDbName)) {
                 Mage::throwException('Shadow DB Name cannot be empty!');
             }
@@ -137,7 +137,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function isEnabled()
     {
         if (null === $this->_isEnabled) {
-            $enabled          = (int)$this->getStore()->getConfig('system/fastindexer/is_active') === 1;
+            $enabled          = (int)$this->getStore()->getConfig('fastindexer/general/is_active') === 1;
             $this->_isEnabled = $this->isPdoFastIndexerInstance() && true === $enabled;
         }
         return $this->_isEnabled;
@@ -160,7 +160,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function dropOldTable()
     {
-        return Mage::getStoreConfigFlag('system/fastindexer/dropOldTable');
+        return Mage::getStoreConfigFlag('fastindexer/general/dropOldTable');
     }
 
     /**
@@ -168,7 +168,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function optimizeTables()
     {
-        return Mage::getStoreConfigFlag('system/fastindexer/optimizeTables');
+        return Mage::getStoreConfigFlag('fastindexer/general/optimizeTables');
     }
 
     /**
@@ -176,6 +176,6 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function enableUrlRewriteCopyCustom()
     {
-        return Mage::getStoreConfigFlag('system/fastindexer/urlRewriteCopyCustom');
+        return Mage::getStoreConfigFlag('fastindexer/url_indexer/urlRewriteCopyCustom');
     }
 }

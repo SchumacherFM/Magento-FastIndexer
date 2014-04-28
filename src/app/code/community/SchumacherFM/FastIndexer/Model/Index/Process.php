@@ -25,7 +25,7 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
             return $this->_lockInstance;
         }
 
-        $userModel = Mage::getStoreConfig('system/fastindexer/lock_model');
+        $userModel = Mage::getStoreConfig('fastindexer/indexer/lock_model');
         if (true === empty($userModel)) {
             $this->_lockInstance = false;
             return false;

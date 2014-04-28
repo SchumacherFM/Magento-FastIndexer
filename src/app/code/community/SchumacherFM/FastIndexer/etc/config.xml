@@ -13,7 +13,6 @@
             <version>1.0.0</version>
         </SchumacherFM_FastIndexer>
     </modules>
-
     <global>
         <blocks>
             <schumacherfm_fastindexer>
@@ -338,14 +337,14 @@
     </global>
 
     <default>
-        <schumacherfm>
-            <fastindexer>
+        <fastindexer>
+            <general>
                 <is_active>0</is_active>
                 <optimizeTables>0</optimizeTables>
                 <dropOldTable>1</dropOldTable>
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
-            </fastindexer>
-        </schumacherfm>
+            </general>
+        </fastindexer>
     </default>
     <phpunit>
         <suite>
@@ -354,4 +353,25 @@
             </modules>
         </suite>
     </phpunit>
+    <adminhtml>
+        <acl>
+            <resources>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <fastindexer translate="title" module="schumacherfm_fastindexer">
+                                            <title>FastIndexer</title>
+                                        </fastindexer>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+    </adminhtml>
 </config>
