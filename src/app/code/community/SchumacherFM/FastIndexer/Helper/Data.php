@@ -106,6 +106,9 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function getShadowDbName($index = 1)
     {
+        if (true === (boolean)Mage::app()->getUpdateMode()) {
+            return '';
+        }
         if (null === $this->_shadowDbName) {
             $this->_shadowDbName = $this->getStore()->getConfig('fastindexer/databases/dbName' . $index);
             if (empty($this->_shadowDbName)) {
@@ -177,5 +180,13 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function enableUrlRewriteCopyCustom()
     {
         return Mage::getStoreConfigFlag('fastindexer/url_indexer/urlRewriteCopyCustom');
+    }
+
+    /**
+     * @return int
+     */
+    public function getLockThreshold()
+    {
+        return (int)Mage::getStoreConfig('fastindexer/indexer/lock_threshold');
     }
 }

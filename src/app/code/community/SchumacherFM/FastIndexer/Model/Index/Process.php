@@ -17,27 +17,63 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
     protected $_lockInstance = null;
 
     /**
+     * @var SchumacherFM_FastIndexer_Helper_Data
+     */
+    protected $_helper = null;
+
+    /**
+     * @return SchumacherFM_FastIndexer_Helper_Data
+     */
+    public function getFiHelper()
+    {
+        if (null === $this->_helper) {
+            $this->_helper = Mage::helper('schumacherfm_fastindexer');
+        }
+        return $this->_helper;
+    }
+
+    /**
+     * @param SchumacherFM_FastIndexer_Model_Lock_LockInterface $lockInstance
+     *
+     * @return $this
+     */
+    public function setLockInstance($lockInstance)
+    {
+        $this->_lockInstance = $lockInstance;
+        return $this;
+    }
+
+    /**
      * @return bool|SchumacherFM_FastIndexer_Model_Lock_LockInterface
      */
-    protected function _getLockInstance()
+    public function getLockInstance()
     {
         if (null !== $this->_lockInstance) {
             return $this->_lockInstance;
         }
 
         $userModel = Mage::getStoreConfig('fastindexer/indexer/lock_model');
-        if (true === empty($userModel)) {
+        if (true === empty($userModel) || false === $this->getFiHelper()->isEnabled()) {
             $this->_lockInstance = false;
             return false;
         }
         $this->_lockInstance = Mage::getModel('schumacherfm_fastindexer/lock_' . $userModel);
+        $this->_lockInstance->setIndexerCode($this->getIndexerCode());
         return $this->_lockInstance;
     }
 
+    /**
+     * @return $this
+     */
     public function reindexAll()
     {
+        if ($this->isLocked()) {
+            Mage::throwException(Mage::helper('schumacherfm_fastindexer')->__(
+                '%s Index process is working now. Please try run this process later or adjust the lock threshold to a smaller value!',
+                $this->getIndexer()->getName()));
+        }
         Mage::dispatchEvent(self::BEFORE_REINDEX_PROCESS_EVENT . $this->getIndexerCode());
-        parent::reindexAll();
+        return parent::reindexAll();
     }
 
     /**
@@ -48,9 +84,11 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
      */
     public function lock()
     {
-        if (false === $this->_getLockInstance()) {
+        if (false === $this->getLockInstance()) {
             return parent::lock();
         }
+        $this->getLockInstance()->lock();
+        return $this;
     }
 
     /**
@@ -62,8 +100,10 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
      */
     public function lockAndBlock()
     {
-        $this->_isLocked = true;
-        flock($this->_getLockFile(), LOCK_EX);
+        if (false === $this->getLockInstance()) {
+            return parent::lockAndBlock();
+        }
+        $this->getLockInstance()->lockAndBlock();
         return $this;
     }
 
@@ -74,8 +114,10 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
      */
     public function unlock()
     {
-        $this->_isLocked = false;
-        flock($this->_getLockFile(), LOCK_UN);
+        if (false === $this->getLockInstance()) {
+            return parent::unlock();
+        }
+        $this->getLockInstance()->unlock();
         return $this;
     }
 
@@ -86,15 +128,9 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
      */
     public function isLocked()
     {
-        if ($this->_isLocked !== null) {
-            return $this->_isLocked;
-        } else {
-            $fp = $this->_getLockFile();
-            if (flock($fp, LOCK_EX | LOCK_NB)) {
-                flock($fp, LOCK_UN);
-                return false;
-            }
-            return true;
+        if (false === $this->getLockInstance()) {
+            return parent::isLocked();
         }
+        return $this->getLockInstance()->isLocked();
     }
 }

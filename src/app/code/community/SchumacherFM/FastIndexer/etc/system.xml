@@ -134,6 +134,15 @@
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
                         </lock_model>
+                        <lock_threshold translate="label,comment">
+                            <label>Lock threshold in seconds</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>90</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>After that time an indexer lock is considered as unlocked! Negative values are allowed.</comment>
+                        </lock_threshold>
                     </fields>
                 </indexer>
                 <url_indexer translate="label" module="schumacherfm_fastindexer">

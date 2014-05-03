@@ -11,6 +11,18 @@ interface SchumacherFM_FastIndexer_Model_Lock_LockInterface
 {
 
     /**
+     * @return string
+     */
+    public function getIndexerCode();
+
+    /**
+     * @param string $indexerCode
+     *
+     * @return mixed
+     */
+    public function setIndexerCode($indexerCode);
+
+    /**
      * Lock process without blocking.
      * This method allow protect multiple process running and fast lock validation.
      *

@@ -10,7 +10,7 @@
 <config>
     <modules>
         <SchumacherFM_FastIndexer>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </SchumacherFM_FastIndexer>
     </modules>
     <global>
@@ -26,6 +26,11 @@
             </schumacherfm_fastindexer>
             <schumacherfm_fastindexer_resource>
                 <class>SchumacherFM_FastIndexer_Model_Resource</class>
+                <entities>
+                    <lock>
+                        <table>fastindexer_lock</table>
+                    </lock>
+                </entities>
             </schumacherfm_fastindexer_resource>
             <index>
                 <rewrite>
@@ -344,6 +349,9 @@
                 <dropOldTable>1</dropOldTable>
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
             </general>
+            <indexer>
+                <lock_threshold>300</lock_threshold>
+            </indexer>
         </fastindexer>
     </default>
     <phpunit>

@@ -12,8 +12,7 @@ $installer->startSetup();
 
 // set indexer model to manual and so speed up everything
 $installer->run('
-UPDATE `' . $installer->getTable('index/process') . '` SET
- `mode`=\'' . Mage_Index_Model_Process::MODE_MANUAL . '\'
+UPDATE `' . $installer->getTable('index/process') . '` SET `mode`=\'' . Mage_Index_Model_Process::MODE_MANUAL . '\'
 ');
 
 $installer->endSetup();

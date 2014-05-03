@@ -1,8 +1,11 @@
 <?php
 
 /**
- * @author kiri
- * @date   4/15/14
+ * @category  SchumacherFM
+ * @package   SchumacherFM_FastIndexer
+ * @copyright Copyright (c) http://www.schumacher.fm
+ * @license   see LICENSE.md file
+ * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 class SchumacherFM_FastIndexer_Model_Lock_Apc implements SchumacherFM_FastIndexer_Model_Lock_LockInterface
 {
