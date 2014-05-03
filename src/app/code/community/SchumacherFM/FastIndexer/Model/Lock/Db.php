@@ -50,7 +50,7 @@ class SchumacherFM_FastIndexer_Model_Lock_Db implements SchumacherFM_FastIndexer
      */
     public function lockAndBlock()
     {
-        // TODO: Implement lockAndBlock() method.
+        $this->getResource()->startLock($this->getIndexerCode());
     }
 
     /**
