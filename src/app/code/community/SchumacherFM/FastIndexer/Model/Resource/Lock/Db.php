@@ -7,6 +7,11 @@
 class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Resource_Db_Abstract
 {
     /**
+     * @var array
+     */
+    protected $_indexerLocked = array();
+
+    /**
      * Initialize  table and table pk
      *
      */
@@ -95,6 +100,10 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
      */
     public function isLocked($indexerCode)
     {
+        if (isset($this->_indexerLocked[$indexerCode])) {
+            return $this->_indexerLocked[$indexerCode];
+        }
+
         $bind = array(
             'ic' => $indexerCode
         );
@@ -105,13 +114,12 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
             $this->getMainTable() . ' WHERE `indexer_code`=:ic', $bind);
 
         $isLocked = (int)$result['locked'] === 1;
-
         /**
          * now detect any broken previous runs where the indexer failed and died
          * this can't be done easily but we could rely on the average runtime of the last index process
          * plus a threshold
          */
-        if (1 === $isLocked) {
+        if (true === $isLocked) {
             $now          = microtime(true);
             $sa           = (double)$result['started_at'];
             $ea           = (double)$result['ended_at'];
@@ -122,11 +130,16 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
              * unlock a locked indexer
              */
             if (($sa + $lastDuration + $threshold) < $now) {
-                Mage::log('FastIndexer: Unlocking locked indexer ' . $indexerCode);
+                $msg = Mage::helper('schumacherfm_fastindexer')->__('FastIndexer: Unlocking locked indexer %s', $indexerCode);
+                if ('cli' === php_sapi_name()) {
+                    echo $msg . PHP_EOL;
+                } else {
+                    Mage::log($msg);
+                }
                 $isLocked = false;
             }
         }
-
+        $this->_indexerLocked[$indexerCode] = $isLocked;
         return $isLocked;
     }
 }
