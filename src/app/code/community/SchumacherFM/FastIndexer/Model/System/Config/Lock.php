@@ -48,7 +48,7 @@ class SchumacherFM_FastIndexer_Model_System_Config_Lock
         return array(
             array('value' => '', 'label' => $helper->__('Default')),
             array('value' => 'db', 'label' => $helper->__('Database')),
-            array('value' => 'redis', 'label' => $helper->__('Redis Server')),
+            array('value' => 'session', 'label' => $helper->__('Session')),
         );
     }
 

@@ -7,7 +7,7 @@
  * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-class SchumacherFM_FastIndexer_Model_Lock_Redis
+class SchumacherFM_FastIndexer_Model_Lock_Session
     extends SchumacherFM_FastIndexer_Model_Lock_Abstract
     implements SchumacherFM_FastIndexer_Model_Lock_LockInterface
 {
