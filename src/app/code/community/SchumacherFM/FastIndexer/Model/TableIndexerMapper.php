@@ -52,7 +52,7 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
             'catalog_product_index_price_opt_agr_idx'     => 1,
             'catalog_product_index_price_opt_idx'         => 1,
             'catalog_product_index_price_downlod_idx'     => 1, // official table name
-            'catalog_product_index_price_download_idx'    => 1, // maybe some one fixed it ...
+            //'catalog_product_index_price_download_idx'    => 1, // maybe some one fixed it ...
             'catalog_product_index_price_cfg_opt_agr_idx' => 1,
             'catalog_product_index_price_cfg_opt_idx'     => 1,
             'catalog_product_index_price_bundle_idx'      => 1,
