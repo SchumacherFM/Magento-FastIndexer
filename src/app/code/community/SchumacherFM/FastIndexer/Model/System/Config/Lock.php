@@ -47,6 +47,7 @@ class SchumacherFM_FastIndexer_Model_System_Config_Lock
         $helper = $this->getHelper();
         return array(
             array('value' => '', 'label' => $helper->__('Default')),
+            array('value' => 'semaphore', 'label' => $helper->__('Semaphore')),
             array('value' => 'db', 'label' => $helper->__('Database')),
             array('value' => 'session', 'label' => $helper->__('Session')),
         );
