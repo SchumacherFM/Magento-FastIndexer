@@ -48,7 +48,6 @@ class SchumacherFM_FastIndexer_Model_System_Config_Lock
         return array(
             array('value' => '', 'label' => $helper->__('Default')),
             array('value' => 'db', 'label' => $helper->__('Database')),
-            array('value' => 'apc', 'label' => $helper->__('APC Cache')),
             array('value' => 'redis', 'label' => $helper->__('Redis Server')),
         );
     }

@@ -7,13 +7,8 @@
  * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-class SchumacherFM_FastIndexer_Model_Lock_Db implements SchumacherFM_FastIndexer_Model_Lock_LockInterface
+class SchumacherFM_FastIndexer_Model_Lock_Db extends SchumacherFM_FastIndexer_Model_Lock_Abstract implements SchumacherFM_FastIndexer_Model_Lock_LockInterface
 {
-    /**
-     * @var string
-     */
-    protected $_indexerCode = null;
-
     /**
      * @var SchumacherFM_FastIndexer_Model_Resource_Lock_Db
      */
@@ -70,24 +65,5 @@ class SchumacherFM_FastIndexer_Model_Lock_Db implements SchumacherFM_FastIndexer
     public function isLocked()
     {
         return $this->getResource()->isLocked($this->getIndexerCode());
-    }
-
-    /**
-     * @param string $indexerCode
-     *
-     * @return $this
-     */
-    public function setIndexerCode($indexerCode)
-    {
-        $this->_indexerCode = $indexerCode;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getIndexerCode()
-    {
-        return $this->_indexerCode;
     }
 }
