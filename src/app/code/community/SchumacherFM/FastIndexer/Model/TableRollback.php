@@ -19,6 +19,28 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     protected $_coreUrlRewrite = 'core_url_rewrite';
 
     /**
+     * @var bool
+     */
+    protected $_isAdminhtml = false;
+
+    /**
+     * When running in the backend via adminhtml we have to make sure that the rollback will happen really
+     * at the end of the request because of the internal tableCaches which cannot be reset to their original
+     * table name. so the name of the shadow db will also be in the tableCache.
+     *
+     * @dispatched controller_action_postdispatch_adminhtml_process_reindexProcess
+     *
+     * @param Varien_Event_Observer $event
+     *
+     * @return null
+     */
+    public function rollbackIndexTablesAdminhtml(Varien_Event_Observer $event = null)
+    {
+        $this->_isAdminhtml = true;
+        $this->rollbackIndexTables($event);
+    }
+
+    /**
      * @param Varien_Event_Observer $event
      *
      * @return bool
@@ -28,6 +50,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         if (false === $this->getHelper()->isEnabled()) {
             return null;
         }
+
+        // explanation see rollbackIndexTablesAdminhtml()
+        if ('cli' !== php_sapi_name() && false === $this->_isAdminhtml) {
+            return null;
+        }
+
         /** @var SchumacherFM_FastIndexer_Model_TableCreator $tableCreator */
         $tableCreator   = Mage::getSingleton('schumacherfm_fastindexer/tableCreator');
         $tablesToRename = $tableCreator->getTables();

@@ -362,6 +362,17 @@
         </suite>
     </phpunit>
     <adminhtml>
+        <events>
+            <controller_action_postdispatch_adminhtml_process_reindexProcess>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/tableRollback</class>
+                        <method>rollbackIndexTablesAdminhtml</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </controller_action_postdispatch_adminhtml_process_reindexProcess>
+        </events>
         <acl>
             <resources>
                 <admin>
