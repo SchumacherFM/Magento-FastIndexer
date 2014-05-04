@@ -69,7 +69,7 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
     {
         if ($this->isLocked()) {
             Mage::throwException(Mage::helper('schumacherfm_fastindexer')->__(
-                '%s Index process is working now. Please try run this process later or adjust the lock threshold to a smaller value!',
+                '%s Index process is working now. Please try run this process later or remove the lock if no indexer is running!',
                 $this->getIndexer()->getName()));
         }
         Mage::dispatchEvent(self::BEFORE_REINDEX_PROCESS_EVENT . $this->getIndexerCode());
