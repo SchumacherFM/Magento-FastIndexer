@@ -85,11 +85,10 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
      */
     public function unlock()
     {
+        $this->_getSemIdentifier();
+
         shm_remove_var($this->_shmId, $this->getIndexerCodeCrc());
-        $success = sem_release($this->_getSemIdentifier());
-        if (false === $success) {
-            Mage::throwException('FastIndexer: Cannot release semaphore lock!');
-        }
+        @sem_release($this->_getSemIdentifier());
         $this->_isLocked = false;
     }
 
