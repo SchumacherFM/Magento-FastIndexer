@@ -33,8 +33,8 @@ class SchumacherFM_FastIndexer_Model_Lock_Shmop
      */
     public function lock()
     {
-        $shmId = shmop_open($this->getIndexerId(), 'n', self::PERM, self::LEN);
-        shmop_write($shmId, $this->getIndexerId(), 0);
+        $shmId = shmop_open($this->getIndexerId(), 'c', self::PERM, self::LEN);
+        shmop_write($shmId, $this->_getMicrotimeString(), 0);
         shmop_close($shmId);
         $this->_isLocked = true;
     }
@@ -58,7 +58,7 @@ class SchumacherFM_FastIndexer_Model_Lock_Shmop
     public function unlock()
     {
         $shmId = shmop_open($this->getIndexerId(), 'w', self::PERM, self::LEN);
-        shmop_write($shmId, 0, 0); // cannot delete because sometimes we're not the owner. so overwrite
+        shmop_write($shmId, str_repeat('0', $this->_getMicrotimeLen()), 0); // cannot delete because sometimes we're not the owner. so overwrite
         shmop_close($shmId);
         $this->_isLocked = false;
     }
@@ -82,10 +82,11 @@ class SchumacherFM_FastIndexer_Model_Lock_Shmop
             $this->_isLocked = false;
             return $this->_isLocked;
         }
-        $size = shmop_size($shmId);
-        $data = (int)shmop_read($shmId, 0, $size);
+        $size      = shmop_size($shmId);
+        $startTime = shmop_read($shmId, 0, $size);
         shmop_close($shmId);
-        $this->_isLocked = $data === $this->getIndexerId();
+
+        $this->_isLocked = $this->_isLockedByTtl((double)$startTime);
         return $this->_isLocked;
     }
 }

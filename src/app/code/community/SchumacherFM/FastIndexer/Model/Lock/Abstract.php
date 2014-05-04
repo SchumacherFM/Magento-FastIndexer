@@ -56,4 +56,39 @@ abstract class SchumacherFM_FastIndexer_Model_Lock_Abstract
     {
         return $this->_indexerId;
     }
+
+    /**
+     * @return int
+     */
+    public function getTtl()
+    {
+        return Mage::helper('schumacherfm_fastindexer')->getLockThreshold();
+    }
+
+    /**
+     * @param double $startTime
+     *
+     * @return bool
+     */
+    protected function _isLockedByTtl($startTime)
+    {
+        $now = microtime(true);
+        return ($startTime + $this->getTtl()) > $now;
+    }
+
+    /**
+     * @return string
+     */
+    protected function _getMicrotimeString()
+    {
+        return (string)microtime(true);
+    }
+
+    /**
+     * @return int
+     */
+    protected function _getMicrotimeLen()
+    {
+        return strlen($this->_getMicrotimeString());
+    }
 }

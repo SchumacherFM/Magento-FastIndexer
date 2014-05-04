@@ -31,16 +31,6 @@ class SchumacherFM_FastIndexer_Model_Lock_Session
     }
 
     /**
-     * That value depends on the number of entries in table ...
-     * @return int
-     */
-    public function getTtl()
-    {
-        $ttl = Mage::helper('schumacherfm_fastindexer')->getLockThreshold();
-        return $ttl * 2;
-    }
-
-    /**
      * Lock process without blocking.
      * This method allow protect multiple process running and fast lock validation.
      *
@@ -82,11 +72,6 @@ class SchumacherFM_FastIndexer_Model_Lock_Session
         if ($startTime < 0.0001) {
             return false;
         }
-        $now = microtime(true);
-        if (($startTime + $this->getTtl()) < $now) {
-            return false;
-        }
-
-        return true;
+        return $this->_isLockedByTtl($startTime);
     }
 }

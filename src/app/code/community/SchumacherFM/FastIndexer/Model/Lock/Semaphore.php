@@ -44,11 +44,11 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
         if (null !== $this->_semId) {
             return $this->_semId;
         }
-        $this->_semId = sem_get($this->getIndexerCodeCrc(), 512, 0666);
+        $this->_semId = sem_get($this->getIndexerCodeCrc(), 8, 0666);
         if (false === $this->_semId) {
             Mage::throwException('FastIndexer: Cannot create semaphore id lock for ' . $this->getIndexerCode());
         }
-        $this->_shmId = shm_attach($this->getIndexerCodeCrc(), 64);
+        $this->_shmId = shm_attach($this->getIndexerCodeCrc(), 128);
         return $this->_semId;
     }
 
@@ -60,7 +60,7 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
     public function lock()
     {
         $success = sem_acquire($this->_getSemIdentifier());
-        shm_put_var($this->_shmId, $this->getIndexerCodeCrc(), 1);
+        shm_put_var($this->_shmId, $this->getIndexerCodeCrc(), $this->_getMicrotimeString());
 
         if (false === $success) {
             Mage::throwException('FastIndexer: Cannot acquire semaphore lock!');
@@ -104,7 +104,14 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
             return $this->_isLocked;
         }
         $this->_getSemIdentifier();
-        return shm_has_var($this->_shmId, $this->getIndexerCodeCrc());
+        $startTime = @shm_get_var($this->_shmId, $this->getIndexerCodeCrc());
+
+        if (false === $startTime) {
+            $this->_isLocked = false;
+            return $this->_isLocked;
+        }
+        $this->_isLocked = $this->_isLockedByTtl((double)$startTime);
+        return $this->_isLocked;
     }
 
     /**
