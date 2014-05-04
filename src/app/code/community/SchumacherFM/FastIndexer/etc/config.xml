@@ -361,6 +361,17 @@
             </modules>
         </suite>
     </phpunit>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <schumacherfm_fastindexer before="Mage_Adminhtml">SchumacherFM_FastIndexer_Adminhtml</schumacherfm_fastindexer>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
     <adminhtml>
         <events>
             <controller_action_postdispatch_adminhtml_process_reindexProcess>
@@ -372,25 +383,15 @@
                     </schumacherfm_fastindexer>
                 </observers>
             </controller_action_postdispatch_adminhtml_process_reindexProcess>
+            <adminhtml_block_html_before>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/observer</class>
+                        <method>updateIndexerMassAction</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </adminhtml_block_html_before>
         </events>
-        <acl>
-            <resources>
-                <admin>
-                    <children>
-                        <system>
-                            <children>
-                                <config>
-                                    <children>
-                                        <fastindexer translate="title" module="schumacherfm_fastindexer">
-                                            <title>FastIndexer</title>
-                                        </fastindexer>
-                                    </children>
-                                </config>
-                            </children>
-                        </system>
-                    </children>
-                </admin>
-            </resources>
-        </acl>
     </adminhtml>
 </config>
