@@ -1,161 +1,233 @@
 <?php
+
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
  * @copyright Copyright (c) http://www.schumacher.fm
- * @license   private!
+ * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndexer_Model_AbstractTable
 {
+    /**
+     * @var array
+     */
+    protected $_createdTables = array();
+
+    /**
+     * @var string
+     */
+    protected $_currentTableName = '';
+
+    /**
+     * @var string
+     */
+    protected $_currentTableSuffix = '';
 
     /**
      * @var array
      */
-    protected $_createdTables = NULL;
+    protected $_isIndexTableListCache = array();
 
     /**
+     * Name of the current indexer
+     *
      * @var string
      */
-    protected $_originalTableName = '';
+    protected $_currentIndexerCode = null;
 
     /**
-     * @var string
-     */
-    protected $_tempTableName = '';
-
-    /**
-     * @param Varien_Event_Observer $event
+     * If not considered then recursing of get_resource_table_name events
      *
-     * @return bool
+     * @var bool
      */
-    public function createTable(Varien_Event_Observer $event)
-    {
-        if (!$this->_runsOnCommandLine() || !Mage::helper('schumacherfm_fastindexer')->isEnabled()) { // run only in shell
-            return TRUE;
-        }
-
-        $this->_setOriginalTableName($event->getEvent()->getTableName());
-
-        if ($this->_isIndexTable() || $this->_isFlatTable()) {
-            /** @var Mage_Core_Model_Resource _resource */
-            $this->_resource = $event->getEvent()->getResource();
-            /** @var Varien_Db_Adapter_Pdo_Mysql _connection */
-            $this->_connection = $this->_resource->getConnection(Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE);
-
-            $this->_setTempTableName()->_createTempTable($event->getEvent()->getTableSuffix());
-        }
-    }
+    protected $_initDone = false;
 
     /**
-     * @param string $table
+     * @var SchumacherFM_FastIndexer_Model_TableIndexerMapper
+     */
+    protected $_tableIndexerMapper = null;
+
+    /**
+     * @param Varien_Event_Observer $observer
      *
-     * @return $this
+     * @return null
      */
-    protected function _setOriginalTableName($table)
+    public function initIndexTables(Varien_Event_Observer $observer)
     {
-        $this->_originalTableName = $table;
-        $this->_originalTableName = str_replace(self::FINDEX_TBL_PREFIX, '', $this->_originalTableName);
-        return $this;
-    }
-
-    /**
-     * @return $this
-     */
-    protected function _setTempTableName()
-    {
-        if (strstr($this->_originalTableName, self::FINDEX_TBL_PREFIX) !== FALSE) {
-            $this->_tempTableName = $this->_originalTableName;
+        if (false === $this->getHelper()->isEnabled()) {
+            return null;
         }
-        $this->_tempTableName = self::FINDEX_TBL_PREFIX . $this->_originalTableName;
-        return $this;
+        $this->_tableIndexerMapper = Mage::getSingleton('schumacherfm_fastindexer/tableIndexerMapper');
+        $this->_currentIndexerCode = str_replace(
+            SchumacherFM_FastIndexer_Model_Index_Process::BEFORE_REINDEX_PROCESS_EVENT,
+            '',
+            $observer->getEvent()->getName()
+        );
+        $this->setResource();
+        $this->_initIndexerTables();
+        $this->_initDone = true;
+        return null;
     }
 
     /**
      * @return bool
+     * @throws InvalidArgumentException
      */
-    protected function _runsOnCommandLine()
+    protected function _initIndexerTables()
     {
-        return isset($_SERVER['argv']) && (int)$_SERVER['argc'] > 0;
+        $tables = $this->_tableIndexerMapper->getTablesByIndexerCode($this->_currentIndexerCode);
+        if (false === $tables) {
+            throw new InvalidArgumentException('Cannot find any FastIndexer table mapping for indexer: ' . $this->_currentIndexerCode);
+        }
+        foreach ($tables as $indexTable => $isSet) {
+            $this->_currentTableName   = $indexTable;
+            $this->_currentTableSuffix = null; // afaik only set for category tables
+            $this->_createShadowTable();
+        }
+        return true;
     }
 
     /**
-     * @param string $tableSuffix
+     * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
+     *       it only adds the shadow db name aka schema to the table
      *
-     * @return $this
-     * @throws Exception
+     * @param Varien_Event_Observer $observer
+     *
+     * @return bool
      */
-    protected function _createTempTable($tableSuffix = '')
+    public function reMapTable(Varien_Event_Observer $observer)
     {
-        if (empty($this->_tempTableName)) {
-            throw new Exception('fastindexer: $this->_tempTableName is empty!');
+        // run only in shell and maybe later also via backend
+        if (false === $this->_initDone || false === $this->getHelper()->isEnabled()) {
+            return null;
         }
 
-        if ($this->_isIndexTable() && !$this->_existsTempTableInDb()) {
-            $this->_connection->raw_query(
-                '/*disable _checkDdlTransaction*/ CREATE TABLE `' . $this->_tempTableName . '` like `' . $this->_originalTableName . '`'
-            );
-        }
+        $this->_currentTableName   = $observer->getEvent()->getTableName();
+        $this->_currentTableSuffix = $observer->getEvent()->getTableSuffix();
 
-        $this->_setMapper($this->_originalTableName, $this->_tempTableName);
-        // create "virtual" entries ...
-        if (!empty($tableSuffix)) {
-            $this->_setMapper($this->_originalTableName . '_' . $tableSuffix, $this->_tempTableName . '_' . $tableSuffix);
-        }
+        $this->setResource($observer->getEvent()->getResource());
+        $this->_updateResourceTableMapping();
+        return null;
+    }
 
-        return $this;
+    /**
+     * for specific tables we need to add the default database name because creating a flat table will have foreign keys
+     * to other core tables in the default database.
+     * for the rest we just add the shadow db name
+     */
+    protected function _updateResourceTableMapping()
+    {
+        $tables = array(
+            'core_store'              => 1, // due to recursion must be hardcoded ... i think
+            'catalog_category_entity' => 1,
+            'catalog_product_entity'  => 1,
+        );
+        // @todo add eventDispatch
+        $currentTable = $this->_getCurrentTableName(false);
+
+        if (isset($tables[$currentTable])) { // @todo check how often that is called
+            $this->_setMapper($currentTable, $this->_getCurrentDbName() . '.' . $currentTable);
+        } elseif (true === $this->_isIndexTable() || true === $this->_isFlatTable()) {
+            $this->_setMapper($currentTable, $this->_getShadowDbName() . '.' . $currentTable);
+        }
     }
 
     /**
      * @param string $_originalTableName
-     * @param string $_tempTableName
+     * @param string $_shadowTableName
+     *
+     * @return Mage_Core_Model_Resource
      */
-    protected function _setMapper($_originalTableName, $_tempTableName)
+    protected function _setMapper($_originalTableName, $_shadowTableName)
     {
-        $this->_resource->setMappedTableName($_originalTableName, $_tempTableName);
-        $this->_createdTables[$_tempTableName] = $_originalTableName;
+        return $this->_getResource()->setMappedTableName($_originalTableName, $_shadowTableName);
     }
 
     /**
-     * @return bool
+     * @param bool $withSuffix
+     * @param bool $quote
+     *
+     * @return string
      */
-    protected function _existsTempTableInDb()
+    protected function _getCurrentTableName($withSuffix = true, $quote = false)
     {
-        if ($this->_createdTables === null) {
-            $this->_createdTables = array();
-            /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-            $stmt   = $this->_connection->query('SHOW TABLES LIKE \'' . self::FINDEX_TBL_PREFIX . '%\'');
-            $tables = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($tables as $table) {
-                $tn                        = reset($table);
-                $this->_createdTables[$tn] = str_replace(self::FINDEX_TBL_PREFIX, '', $tn);
-            }
+        $return = $this->_currentTableName .
+            (true === $withSuffix && false === empty($this->_currentTableSuffix)
+                ? '_' . $this->_currentTableSuffix
+                : '');
+        if (true === $quote) {
+            return $this->_quote($return);
         }
-        return isset($this->_createdTables[$this->_tempTableName]);
+        return $return;
     }
 
     /**
+     * this needs to be execute in another DB because index names are unique within a DB and if we create the shadow tables
+     * within the same db as magento then the index names are different
+     * @return $this
+     */
+    protected function _createShadowTable()
+    {
+        if (false === isset($this->_createdTables[$this->_getCurrentTableName()])) {
+            $this->_createShadowTableReal();
+        }
+
+        $this->_createdTables[$this->_getCurrentTableName()] = array(
+            't' => $this->_getCurrentTableName(false),
+            's' => $this->_currentTableSuffix
+        ); // singleton
+        return $this;
+    }
+
+    /**
+     * drops the table in the shadow db
+     * creates the table in the shadow db
+     */
+    protected function _createShadowTableReal()
+    {
+        // if index table or category_flat table then drop in shadow db
+        $this->_dropTable($this->_getCurrentTableName(), $this->_getShadowDbName(false, 1));
+
+        // create all non flat index tables
+        if (true === $this->_isIndexTable()) {
+            $sql = 'CREATE TABLE ' . $this->_getShadowDbName(true) . '.' . $this->_getCurrentTableName(true, true) .
+                ' LIKE ' . $this->_getCurrentTableName(false, true);
+            $this->_rawQuery($sql);
+        }
+        return true;
+    }
+
+    /**
+     * <old>
+     * Esp. when catalog_product_price runs which calls the stock indexer first and when then the price indexer
+     * run, the stocks will get truncated :-(
+     *
+     * when catalogsearch_fulltext runs then it requires the table cataloginventory_stock_status and this class
+     * will drop that table asap when not checking if the tables cataloginventory_stock_status indexer is running.
+     * so we need a mapping from table name to indexer name
+     * </old>
      * @return bool
      */
     protected function _isIndexTable()
     {
-        return
-            strpos($this->_originalTableName, '_index') > 2 ||
-            strpos($this->_originalTableName, '_idx') > 2 ||
-            strstr($this->_originalTableName, 'core_url_rewrite') !== FALSE;
+        return $this->_tableIndexerMapper->isIndexTable($this->_currentIndexerCode, $this->_getCurrentTableName(true, false));
     }
 
     /**
+     * When the default indexer of the flat table runs, it drops first the flat table and then creates it new.
+     * used connection_name: catalog_write
+     *
      * @return bool
      */
     protected function _isFlatTable()
     {
-        return
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_CATEGORY_FLAT) !== FALSE ||
-            strstr($this->_originalTableName, SchumacherFM_FastIndexer_Helper_Data::CATALOG_PRODUCT_FLAT) !== FALSE;
+        return $this->_tableIndexerMapper->isFlatTable($this->_currentIndexerCode, $this->_getCurrentTableName(true, false));
     }
 
     /**
+     * will be called from tableRollBack class
+     *
      * @return array|null
      */
     public function getTables()
@@ -170,8 +242,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function unsetTables()
     {
-        $this->_createdTables = null;
+        $this->_createdTables = array();
         return $this;
     }
-
 }

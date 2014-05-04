@@ -1,14 +1,19 @@
 <?php
+
 /**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
  * @copyright Copyright (c) http://www.schumacher.fm
- * @license   private!
+ * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 abstract class SchumacherFM_FastIndexer_Model_AbstractTable
 {
-    const FINDEX_TBL_PREFIX = 'afstidex_';
+    /**
+     * @see Varien_Db_Adapter_Pdo_Mysql::_checkDdlTransaction
+     * I found that string under my foot nails.
+     */
+    const DISABLE_CHECKDDLTRANSACTION = '/*disable _checkDdlTransaction*/ ';
 
     /**
      * @var Mage_Core_Model_Resource
@@ -16,18 +21,87 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected $_resource = null;
 
     /**
-     * @var Varien_Db_Adapter_Pdo_Mysql
+     * @var SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql
      */
     protected $_connection = null;
 
-    protected $_isEchoOn = FALSE;
+    /**
+     * @deprecated
+     * @var boolean
+     */
+    protected $_shadowResourceCreated = null;
+
+    protected $_shadowDbName = array();
+    protected $_currentDbName = null;
 
     /**
-     * @return Varien_Db_Adapter_Pdo_Mysql
+     * @var SchumacherFM_FastIndexer_Helper_Data
+     */
+    protected $_helper = null;
+
+    public function __construct($helper = null)
+    {
+        if (false === empty($helper) && $helper instanceof SchumacherFM_FastIndexer_Helper_Data) {
+            $this->_helper = $helper;
+        }
+    }
+
+    /**
+     * @return \SchumacherFM_FastIndexer_Helper_Data
+     */
+    public function getHelper()
+    {
+        if (null === $this->_helper) {
+            $this->_helper = Mage::helper('schumacherfm_fastindexer');
+        }
+        return $this->_helper;
+    }
+
+    /**
+     * @param bool $quote
+     *
+     * @return string
+     */
+    protected function _getCurrentDbName($quote = false)
+    {
+        if (null === $this->_currentDbName) {
+            $this->_currentDbName = (string)Mage::getConfig()->getNode(SchumacherFM_FastIndexer_Helper_Data::CONFIG_DB_NAME);
+            if (empty($this->_currentDbName)) {
+                Mage::throwException('Current DB Name cannot be empty!');
+            }
+        }
+        if (true === $quote) {
+            return $this->_quote($this->_currentDbName);
+        }
+        return $this->_currentDbName;
+    }
+
+    /**
+     * @param bool $quote
+     * @param int  $index
+     *
+     * @return string
+     */
+    protected function _getShadowDbName($quote = false, $index = 1)
+    {
+        if (false === isset($this->_shadowDbName[$index])) {
+            $this->_shadowDbName[$index] = trim(Mage::getStoreConfig('system/fastindexer/dbName' . $index));
+            if (empty($this->_shadowDbName[$index])) {
+                Mage::throwException('Shadow DB Name cannot be empty!');
+            }
+        }
+        if (true === $quote) {
+            return $this->_quote($this->_shadowDbName[$index]);
+        }
+        return $this->_shadowDbName[$index];
+    }
+
+    /**
+     * @return SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql
      */
     protected function _getConnection()
     {
-        if ($this->_connection === null) {
+        if (null === $this->_connection) {
             $this->_connection = $this->_getResource()->getConnection(Mage_Core_Model_Resource::DEFAULT_WRITE_RESOURCE);
         }
         return $this->_connection;
@@ -37,10 +111,15 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      * @param Mage_Core_Model_Resource $resource
      *
      * @return $this
+     * @throws InvalidArgumentException
      */
-    protected function _setResource(Mage_Core_Model_Resource $resource)
+    public function setResource($resource = null)
     {
-        $this->_resource = $resource;
+        if (null !== $resource) {
+            $this->_resource = $resource;
+        } elseif (null === $this->_resource) {
+            $this->_resource = Mage::getSingleton('core/resource');
+        }
         return $this;
     }
 
@@ -49,111 +128,35 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected function _getResource()
     {
-        return $this->_resource;;
+        return $this->_resource;
     }
 
     /**
-     * exception 'PDOException' with message 'SQLSTATE[HY000]: General error: 1005 Can't create table 'stoeckli-11-snapshot-local.afstidex_catalog_product_flat_5' (errno: 121)' in /Volumes/unic/www/stoeckli-dev/
-     * @todo bug: before the temp flat table will be created change the original index names
-     *       use event: catalog_product_flat_prepare_indexes this applies only for products ... not for categories ...
-     *       have to find another solution
+     * @param string $tableName
+     * @param string $schema
      *
-     * restores the original name of the foreign key
-     *
-     * @param string $_originalTableName
-     * @param string $addOrRemoveTablePrefixToKey
-     *
-     * @return $this
+     * @return bool
      */
-    protected function _restoreTableKeys($_originalTableName, $addOrRemoveTablePrefixToKey = '+')
+    protected function _dropTable($tableName, $schema = '')
     {
-        $_originalFks = $this->_getConnection()->getForeignKeys($_originalTableName);
-
-        if (count($_originalFks) > 0) {
-            // because key name contains: FINDEX_TBL_PREFIX
-            // drop and create of a FK only possible in ONE statement = RENAME
-            $sqlFk = array();
-            foreach ($_originalFks as $_fk) {
-                if ($this->_isEchoOn === TRUE) {
-                    echo 'Drop FK: ' . $_originalTableName . ' -> ' . $_fk['FK_NAME'] . PHP_EOL;
-                }
-                $sqlFk[] = 'DROP FOREIGN KEY ' . $this->_quote($_fk['FK_NAME']);
-
-                $originalFkName = $this->_removeTablePrefix($_fk['FK_NAME']);
-                if ($this->_isEchoOn === TRUE) {
-                    echo 'Add FK: ' . $_originalTableName . ' -> ' . $originalFkName . PHP_EOL;
-                }
-
-                $query = sprintf('ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s)',
-                    $this->_quote($originalFkName),
-                    $this->_quote($_fk['COLUMN_NAME']),
-                    $this->_quote($_fk['REF_TABLE_NAME']),
-                    $this->_quote($_fk['REF_COLUMN_NAME'])
-                );
-
-                if (!empty($_fk['ON_DELETE'])) {
-                    $query .= ' ON DELETE ' . strtoupper($_fk['ON_DELETE']);
-                }
-                if (!empty($_fk['ON_UPDATE'])) {
-                    $query .= ' ON UPDATE ' . strtoupper($_fk['ON_UPDATE']);
-                }
-
-                $sqlFk[] = $query;
-            }
-            $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlFk);
-            $this->_getConnection()->raw_query($sql);
-        }
-
-        $_originalIndexList = $this->_getIndexList($_originalTableName);
-
-        if (count($_originalIndexList) > 0) {
-            // drop and create of an index only possible in ONE statement = RENAME
-            $sqlIndex = array();
-            foreach ($_originalIndexList as $_key) {
-                if ($this->_isEchoOn === TRUE) {
-                    echo 'Drop IDX: ' . $_originalTableName . ' -> ' . $_key['KEY_NAME'] . PHP_EOL;
-                }
-                $sqlIndex[] = 'DROP INDEX ' . $this->_quote($_key['KEY_NAME']);
-
-                $originalIdxName = $this->_removeTablePrefix($_key['KEY_NAME']);
-                if ($this->_isEchoOn === TRUE) {
-                    echo 'Add IDX: ' . $_originalTableName . ' -> ' . $originalIdxName . PHP_EOL;
-                }
-
-                switch (strtolower($_key['INDEX_TYPE'])) {
-                    case Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE:
-                        $condition = 'UNIQUE ' . $this->_quote($originalIdxName);
-                        break;
-                    case Varien_Db_Adapter_Interface::INDEX_TYPE_FULLTEXT:
-                        $condition = 'FULLTEXT ' . $this->_quote($originalIdxName);
-                        break;
-                    default:
-                        $condition = 'INDEX ' . $this->_quote($originalIdxName);
-                        break;
-                }
-
-                foreach ($_key['COLUMNS_LIST'] as $k => $v) {
-                    $_key['COLUMNS_LIST'][$k] = $this->_quote($v);
-                }
-                $sqlIndex[] = sprintf('ADD %s (%s)', $condition, implode(',', $_key['COLUMNS_LIST']));
-            }
-            $sql = '/*disable*/ ALTER TABLE ' . $this->_quote($_originalTableName) . ' ' . implode(',', $sqlIndex);
-            $this->_getConnection()->raw_query($sql);
-        }
-
-        return $this;
+        $schema = empty($schema) ? '' : $this->_quote($schema) . '.';
+        $this->_rawQuery('DROP TABLE IF EXISTS ' . $schema . $this->_quote($tableName));
     }
 
     /**
-     * index names are always upper case
+     * @param string $sql
      *
-     * @param $string
-     *
-     * @return mixed
+     * @return Zend_Db_Statement_Interface
      */
-    protected function _removeTablePrefix($string)
+    protected function _rawQuery($sql)
     {
-        return str_replace(strtoupper(self::FINDEX_TBL_PREFIX), '', $string);
+        $sql = self::DISABLE_CHECKDDLTRANSACTION . $sql;
+        try {
+            return $this->_getConnection()->raw_query($sql);
+        } catch (PDOException $e) {
+            Mage::log(PHP_EOL . $sql . PHP_EOL . $e->__toString(), Zend_Log::ERR, 'fastIndexerException.log');
+        }
+        return false;
     }
 
     /**
@@ -167,63 +170,51 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     }
 
     /**
-     * @param string $tableName
+     * Creates a new config node for e.g. catalog_write resource so that the indexer will use a different PDO model
+     * because flat indexer uses the table name as prefix for the index name and when there is a table name like
+     * test.catalog_product_flat ... the index creation process will fail.
+     * There also many other bugs in Varien_Db_Adapter_Pdo_Mysql which are fixed in our PDO model.
+     * It is important this method will be executed with the retrieval of the first table name because in the
+     * Mage_Catalog_Model_Resource_Product_Flat_Indexer::prepareFlatTable() is the "bug" that first the PDO adapter
+     * will be fetched and then the table name. More ideal is the other way round :-)
      *
-     * @return array
+     * Product/Flat/Indexer.php is not using the catalog_read resource, it is using DEFAULT_READ_RESOURCE,
+     * so we also must patch that xml node :-(
+     *
+     * We have to change in etc/local.xml the type to pdo_mysql_findexer because the product flat indexer
+     * uses the already instantiated connection core_read which we cannot change anymore with an event observer :-(
+     * Damn!
+     *
+     * @deprecated and only listed here for doc reasons.
+     *
+     * @return boolean
      */
-    protected function _getIndexList($tableName)
-    {
-        $index = $this->_getConnection()->getIndexList($tableName);
-        if (isset($index['PRIMARY'])) {
-            unset($index['PRIMARY']);
-        }
-        return $index;
-    }
-
-    /**
-     * returns all non PRI columns
-     *
-     * @param $tableName
-     *
-     * @return array
-     */
-    protected function _getColumnsFromTable($tableName)
-    {
-        /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt          = $this->_getConnection()->query('SHOW COLUMNS FROM `' . $tableName . '`');
-        $columnsResult = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $columns       = array();
-        foreach ($columnsResult as $col) {
-            if ($col['Key'] !== 'PRI') {
-                $columns[] = '`' . $col['Field'] . '`';
-            }
-        }
-        return $columns;
-    }
-
-    /**
-     * @param $tableName
-     *
-     * @return int
-     */
-    protected function _getTableCount($tableName)
-    {
-        /** @var Varien_Db_Statement_Pdo_Mysql $stmt */
-        $stmt    = $this->_getConnection()->query('SELECT COUNT(*) as counted from `' . $tableName . '`');
-        $counter = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return isset($counter[0]) ? (int)$counter[0]['counted'] : 0;
-    }
-
-    /**
-     * @param string $tableName
-     *
-     * @return bool
-     */
-    protected function _dropTable($tableName)
-    {
-        if (Mage::helper('schumacherfm_fastindexer')->dropOldTable() === TRUE) {
-            $this->_getConnection()->dropTable($tableName);
-        }
-    }
-
+//    protected function _initShadowResourcePdoModel()
+//    {
+//        if ($this->_shadowResourceCreated === null) {
+//
+//            $types = array(
+//                'catalog_write',
+//                Mage_Core_Model_Resource::DEFAULT_READ_RESOURCE
+//            );
+//
+//            foreach ($types as $type) {
+//                $nodePrefix     = 'global/resources/' . $type . '/connection';
+//                $connectionNode = Mage::getConfig()->getNode($nodePrefix);
+//
+//                if ($connectionNode && !isset($connectionNode->use)) {
+//                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig($type);
+//                } else {
+//                    $connectDefault = Mage::getConfig()->getResourceConnectionConfig(Mage_Core_Model_Resource::DEFAULT_SETUP_RESOURCE);
+//                }
+//
+//                $connectDefault->type = 'pdo_mysql_findexer';
+//                foreach ($connectDefault->asArray() as $nodeName => $nodeValue) {
+//                    Mage::getConfig()->setNode($nodePrefix . '/' . $nodeName, $nodeValue);
+//                }
+//            }
+//            $this->_shadowResourceCreated = true;
+//        }
+//        return $this->_shadowResourceCreated;
+//    }
 }

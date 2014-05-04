@@ -1,33 +1,32 @@
-<?xml version="1.0"?>
-<!--
- /**
+<?xml version="1.0"?><!--
+/**
  * @category  SchumacherFM
  * @package   SchumacherFM_FastIndexer
  * @copyright Copyright (c) http://www.schumacher.fm
- * @license   private!
+ * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
 -->
 <config>
     <sections>
-        <schumacherfm>
-            <label>@SchumacherFM</label>
+        <fastindexer>
+            <label>FastIndexer</label>
             <tab>advanced</tab>
             <frontend_type>text</frontend_type>
-            <sort_order>910</sort_order>
+            <sort_order>1970</sort_order>
             <show_in_default>1</show_in_default>
-            <show_in_website>1</show_in_website>
-            <show_in_store>1</show_in_store>
+            <show_in_website>0</show_in_website>
+            <show_in_store>0</show_in_store>
             <groups>
-                <fastindexer translate="label">
-                    <label>FastIndexer</label>
+                <general translate="label" module="schumacherfm_fastindexer">
+                    <label>General</label>
                     <frontend_type>text</frontend_type>
-                    <sort_order>50</sort_order>
+                    <sort_order>10</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>0</show_in_website>
                     <show_in_store>0</show_in_store>
                     <fields>
-                        <enable translate="label">
+                        <is_active translate="label">
                             <label>Enable FastIndexer</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
@@ -35,28 +34,162 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                        </enable>
-                        <dropOldTable translate="label">
-                            <label>Drop old tables</label>
+                        </is_active>
+                        <dropOldTable translate="label,comment">
+                            <label>Drop Old Tables</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>20</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
+                            <comment>Only disable for development or testing.</comment>
+                            <depends>
+                                <is_active>1</is_active>
+                            </depends>
                         </dropOldTable>
-                        <echo translate="label">
-                            <label>Statistical Output</label>
+                        <optimizeTables translate="label,comment">
+                            <label>Optimize Tables</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>30</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                        </echo>
+                            <comment>Before swapping the tables into the core database you can run an optimize statement.
+                                Reorganizes the physical storage of table data and associated index data, to reduce storage
+                                space and improve I/O efficiency when accessing the table.
+                                E.g.: This action takes around 45s for ~450,000 rows core_url_rewrite table.
+                            </comment>
+                            <depends>
+                                <is_active>1</is_active>
+                            </depends>
+                        </optimizeTables>
                     </fields>
-                </fastindexer>
+                </general>
+
+                <setup translate="label" module="schumacherfm_fastindexer">
+                    <label>Setup</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <correctSetup translate="label">
+                            <label>Verifying Installation of PDO class</label>
+                            <frontend_model>schumacherfm_fastindexer/adminhtml_system_config_setup</frontend_model>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </correctSetup>
+                    </fields>
+                </setup>
+
+                <databases translate="label" module="schumacherfm_fastindexer">
+                    <label>Databases</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <dbName1 translate="label">
+                            <label>Shadow Database Name 1</label>
+                            <frontend_type>text</frontend_type>
+                            <frontend_model>schumacherfm_fastindexer/adminhtml_system_config_database</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </dbName1>
+                        <dbName2 translate="label,comment">
+                            <label>Shadow Database Name 2</label>
+                            <frontend_type>text</frontend_type>
+                            <frontend_model>schumacherfm_fastindexer/adminhtml_system_config_database</frontend_model>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Name must be different from Shadow Database 1.</comment>
+                        </dbName2>
+                    </fields>
+                </databases>
+
+                <indexer translate="label" module="schumacherfm_fastindexer">
+                    <label>Indexer</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>40</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+                        <lock_model translate="label,comment">
+                            <label>Indexer Process Lock Type</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>schumacherfm_fastindexer/system_config_lock</source_model>
+                            <sort_order>80</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </lock_model>
+                        <lock_threshold translate="label,comment">
+                            <label>Lock threshold in seconds</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>90</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>After that time an indexer lock is considered as unlocked! Negative values are allowed.</comment>
+                        </lock_threshold>
+                    </fields>
+                </indexer>
+                <url_indexer translate="label" module="schumacherfm_fastindexer">
+                    <label>URL Indexer</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>50</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>0</show_in_website>
+                    <show_in_store>0</show_in_store>
+                    <fields>
+
+                        <urlRewriteCopyCustom translate="label,comment">
+                            <label>URL Rewrites: Copy all custom URLs</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>70</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment><![CDATA[Enable this option if you wish to copy all custom URLs.
+                                Before enabling this option be sure that the permanent rewrite generating bug
+                                in Magento ~<=1.7 has been fixed. Otherwise you will add tens of thousands useless
+                                 rewrites.
+                                 If this option is disabled only the rewrites created by the store maintainer will be copied.
+                                 But this can be slow because a regular expression will be used to determine all rewrites.
+                                 If set to yes no regex will be used.
+                                ]]></comment>
+                        </urlRewriteCopyCustom>
+                    </fields>
+                </url_indexer>
+                <!--<urlRewriteReindexOnlyVisibleProducts translate="label,comment">-->
+                <!--<label>TODO Reindex only visible products</label>-->
+                <!--<frontend_type>select</frontend_type>-->
+                <!--<source_model>adminhtml/system_config_source_yesno</source_model>-->
+                <!--<sort_order>80</sort_order>-->
+                <!--<show_in_default>1</show_in_default>-->
+                <!--<show_in_website>0</show_in_website>-->
+                <!--<show_in_store>0</show_in_store>-->
+                <!--<comment><![CDATA[-->
+                <!--idea without modifiying core indexer class ...-->
+                <!--]]></comment>-->
+                <!--<depends>-->
+                <!--<is_active>1</is_active>-->
+                <!--</depends>-->
+                <!--</urlRewriteReindexOnlyVisibleProducts>-->
+
             </groups>
-        </schumacherfm>
+        </fastindexer>
     </sections>
 </config>

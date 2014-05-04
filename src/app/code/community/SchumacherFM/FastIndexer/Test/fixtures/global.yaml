@@ -1,0 +1,81 @@
+# /**
+#  * @category  SchumacherFM
+#  * @package   SchumacherFM_FastIndexer
+#  * @copyright Copyright (c) http://www.schumacher.fm
+#  * @license   see LICENSE.md file
+#  * @author    Cyrill at Schumacher dot fm @SchumacherFM
+#  */
+# ===== Test Setup ======
+#
+# System config settings:
+#
+# Module is globally enabled
+
+scope:
+  website: # Initialize websites
+    - website_id: 2
+      code: usa_website
+      name: USA Website
+      default_group_id: 2
+    - website_id: 3
+      code: canada_website
+      name: Canada Website
+      default_group_id: 3
+    - website_id: 4
+      code: german_website
+      name: German Website
+      default_group_id: 4
+  group: # Initializes store groups
+    - group_id: 2
+      website_id: 2
+      name: USA Store Group
+      default_store_id: 2
+      root_category_id: 2 # Default Category
+    - group_id: 3
+      website_id: 3
+      name: Canada Store Group
+      default_store_id: 3
+      root_category_id: 2 # Default Category
+    - group_id: 4
+      website_id: 4
+      name: German Store Group
+      default_store_id: 4
+      root_category_id: 2 # Default Category
+  store: # Initializes store views
+    - store_id: 2
+      website_id: 2
+      group_id: 2
+      code: usa
+      name: USA Store
+      is_active: 1
+    - store_id: 6
+      website_id: 2
+      group_id: 2
+      code: usa2
+      name: USA Store 2
+      is_active: 1
+    - store_id: 3
+      website_id: 3
+      group_id: 3
+      code: canada
+      name: Canada Store
+      is_active: 1
+    - store_id: 4
+      website_id: 4
+      group_id: 4
+      code: germany
+      name: Germany Store
+      is_active: 1
+    - store_id: 5
+      website_id: 4
+      group_id: 4
+      code: germany2
+      name: Germany Store 2
+      is_active: 1
+
+config:
+  default/system/fastindexer/is_active: 1
+  default/system/fastindexer/dbName1: fixture_test
+  default/system/fastindexer/dbName2: fixture_test2
+  default/system/fastindexer/db_quote_optimization: 1
+  default/system/fastindexer/dropOldTable: 0
