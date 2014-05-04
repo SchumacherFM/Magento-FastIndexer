@@ -15,6 +15,11 @@ abstract class SchumacherFM_FastIndexer_Model_Lock_Abstract
     protected $_indexerCode = null;
 
     /**
+     * @var int
+     */
+    protected $_indexerId = 0;
+
+    /**
      * @param string $indexerCode
      *
      * @return $this
@@ -31,5 +36,24 @@ abstract class SchumacherFM_FastIndexer_Model_Lock_Abstract
     public function getIndexerCode()
     {
         return $this->_indexerCode;
+    }
+
+    /**
+     * @param int $indexerId
+     *
+     * @return $this
+     */
+    public function setIndexerId($indexerId)
+    {
+        $this->_indexerId = (int)$indexerId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getIndexerId()
+    {
+        return $this->_indexerId;
     }
 }

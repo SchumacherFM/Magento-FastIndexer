@@ -17,9 +17,11 @@ class SchumacherFM_FastIndexer_Adminhtml_FastindexerController extends Mage_Admi
         return $result;
     }
 
+    /**
+     * Mass action to remove a lock from a indexer process
+     */
     public function massRemoveLockAction()
     {
-
         $data = $this->getRequest()->getPost('process');
         if (false === empty($data) && is_array($data)) {
             try {
@@ -27,8 +29,7 @@ class SchumacherFM_FastIndexer_Adminhtml_FastindexerController extends Mage_Admi
                 $process = Mage::getModel('index/process');
                 /*  Mage_Index_Model_Resource_Process_Collection $processCollection */
                 $processCollection = $process->getCollection()->load()->getItems();
-
-                $results = array();
+                $results           = array();
                 foreach ($data as $id) {
                     $id = (int)$id;
                     if (isset($processCollection[$id])) {
@@ -37,7 +38,7 @@ class SchumacherFM_FastIndexer_Adminhtml_FastindexerController extends Mage_Admi
                         $code     = $aProcess->getIndexerCode();
                         /** @var SchumacherFM_FastIndexer_Model_Lock_LockInterface $lockInstance */
                         $lockInstance = $process->getLockInstance();
-                        $lockInstance->setIndexerCode($code);
+                        $lockInstance->setIndexerCode($code)->setIndexerId($id);
                         if (true === $lockInstance->isLocked()) {
                             $lockInstance->unlock();
                             $aProcess->setStatus(Mage_Index_Model_Process::STATUS_PENDING);

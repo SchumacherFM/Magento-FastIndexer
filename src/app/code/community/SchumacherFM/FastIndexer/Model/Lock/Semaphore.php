@@ -36,6 +36,7 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
     }
 
     /**
+     * On any *nix use the commands ipcs and ipcrm to work with the memory
      * @return resource
      */
     protected function _getSemIdentifier()
