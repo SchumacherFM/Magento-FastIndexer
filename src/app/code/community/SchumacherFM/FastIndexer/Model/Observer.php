@@ -25,10 +25,10 @@ class SchumacherFM_FastIndexer_Model_Observer
             return null;
         }
 
-        $block->getMassactionBlock()->addItem('remove_lock', array(
+        $block->getMassactionBlock()->addItem('remove_lock', [
             'label' => Mage::helper('schumacherfm_fastindexer')->__('Remove Lock'),
             'url'   => $block->getUrl('*/fastindexer/massRemoveLock'),
-        ));
+        ]);
 
         return null;
     }

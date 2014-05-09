@@ -16,23 +16,23 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
      *
      * @var array
      */
-    protected $_mapIndexTables = array(
+    protected $_mapIndexTables = [
 
-        'catalog_product_attribute' => array(
+        'catalog_product_attribute' => [
             'catalog_product_index_eav_tmp'         => 1,
             'catalog_product_index_eav_idx'         => 1,
             'catalog_product_index_eav'             => 1,
             'catalog_product_index_eav_decimal_tmp' => 1,
             'catalog_product_index_eav_decimal_idx' => 1,
             'catalog_product_index_eav_decimal'     => 1,
-        ),
-        'cataloginventory_stock'    => array(
+        ],
+        'cataloginventory_stock'    => [
             'cataloginventory_stock_status'      => 1,
             'cataloginventory_stock_status_idx'  => 1,
             'cataloginventory_stock_status_tmp'  => 1,
             'catalog_product_bundle_stock_index' => 1,
-        ),
-        'catalog_category_product'  => array(
+        ],
+        'catalog_category_product'  => [
             'catalog_category_product_index'          => 1,
             'catalog_category_product_index_enbl_idx' => 1,
             'catalog_category_product_index_enbl_tmp' => 1,
@@ -42,8 +42,8 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
             'catalog_category_anc_categs_index_tmp'   => 1,
             'catalog_category_anc_products_index_idx' => 1,
             'catalog_category_anc_products_index_tmp' => 1,
-        ),
-        'catalog_product_price'     => array(
+        ],
+        'catalog_product_price'     => [
             'catalog_product_index_price_idx'             => 1,
             'catalog_product_index_website'               => 1,
             'catalog_product_index_tier_price'            => 1,
@@ -59,40 +59,40 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
             'catalog_product_index_price_bundle_sel_idx'  => 1,
             'catalog_product_index_price_bundle_opt_idx'  => 1,
             'catalog_product_index_price'                 => 1,
-        ),
-        'catalogsearch_fulltext'    => array(
+        ],
+        'catalogsearch_fulltext'    => [
             'catalogsearch_fulltext' => 1,
-        ),
-        'tag_summary'               => array(
+        ],
+        'tag_summary'               => [
             'tag_summary' => 1,
-        ),
-        'catalog_url'               => array(
+        ],
+        'catalog_url'               => [
             'core_url_rewrite' => 1,
-        ),
-        'catalogpermissions'        => array(
+        ],
+        'catalogpermissions'        => [
             'enterprise_catalogpermissions_index'         => 1,
             'enterprise_catalogpermissions_index_product' => 1,
-        ),
-        'targetrule'                => array(
+        ],
+        'targetrule'                => [
             'enterprise_targetrule_index'           => 1,
             'enterprise_targetrule_index_related'   => 1,
             'enterprise_targetrule_index_crosssell' => 1,
             'enterprise_targetrule_index_upsell'    => 1,
-        ),
+        ],
 
-    );
+    ];
 
     /**
      * IndexerCode => empty
      *
      * @var array
      */
-    protected $_mapFlatTables = array(
-        'catalog_product_flat'  => array(
+    protected $_mapFlatTables = [
+        'catalog_product_flat'  => [
             Mage_Catalog_Model_Product_Flat_Indexer::ENTITY => 1, // hardcoded due to recursion and needed for isFlatTable
-        ),
-        'catalog_category_flat' => array(),
-    );
+        ],
+        'catalog_category_flat' => [],
+    ];
     /**
      * @var array
      */
@@ -107,7 +107,7 @@ class SchumacherFM_FastIndexer_Model_TableIndexerMapper
             $this->_stores = $stores;
         }
         $this->_initFlatTables();
-        Mage::dispatchEvent('fastindexer_mapping_table', array('mapper' => $this));
+        Mage::dispatchEvent('fastindexer_mapping_table', ['mapper' => $this]);
     }
 
     /**

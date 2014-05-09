@@ -189,4 +189,34 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return (int)Mage::getStoreConfig('fastindexer/indexer/lock_threshold');
     }
+
+    /**
+     * @param int $store
+     *
+     * @return bool
+     */
+    public function excludeDisabledProducts($store = null)
+    {
+        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_products', $store);
+    }
+
+    /**
+     * @param int $store
+     *
+     * @return bool
+     */
+    public function excludeNotVisibleProducts($store = null)
+    {
+        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_not_visible_products', $store);
+    }
+
+    /**
+     * @param int $store
+     *
+     * @return bool
+     */
+    public function excludeDisableCategories($store = null)
+    {
+        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disable_categories', $store);
+    }
 }

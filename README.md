@@ -8,7 +8,7 @@ No more empty results in the frontend due to a long taking reindex process!
 - Only one class rewrite! (Adding an event in `Mage_Index_Model_Process::reindexAll()`)
 - Indexing blocks the frontend for only ~0.003 seconds instead of minutes with the normal indexer.
 - The frontend will not be affected anymore by any reindex process.
-- Speeds up some indexing processes of your Magento store. 
+- Speeds up some indexing processes of your Magento store.
 - You can enable or disable the module in the backend and test the speed difference by yourself.
 - Full reindexing now even under high frontend load possible (Citation/Test needed ... ).
 - Limits the amount of SQL queries in some cases
@@ -150,9 +150,9 @@ On my MacBook Air Mid 2012 tested with the following stores.
 
 Condition for all tests:
 
-- No load on the frontend. 
-- Just indexing of previous reindexed tables. 
-- All indexe commands ran 3x and the median has been calculated. 
+- No load on the frontend.
+- Just indexing of previous reindexed tables.
+- All indexe commands ran 3x and the median has been calculated.
 - `SET GLOBAL query_cache_type=OFF;` has been set.
 - At the 4th run all queries have been counted in `Zend_Db_Statement_Pdo::_execute()`.
 
@@ -236,7 +236,7 @@ Compatibility
 -------------
 
 - Magento CE >= 1.6.2
-- php >= 5.2.0
+- php >= 5.4.0
 
 The FastIndexer will not run with Magento CE < 1.6.2 because elementary events are missing. If you are interested in running FastIndexer with lower Magneto version write me, there is a solution.
 

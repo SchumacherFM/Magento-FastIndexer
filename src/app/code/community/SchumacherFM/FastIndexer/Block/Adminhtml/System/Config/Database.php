@@ -69,7 +69,7 @@ class SchumacherFM_FastIndexer_Block_Adminhtml_System_Config_Database extends Ma
         if (empty($dbName)) {
             return false;
         }
-        $result = $this->_connection->fetchOne('SELECT SCHEMA_NAME FROM `INFORMATION_SCHEMA`.`SCHEMATA` WHERE SCHEMA_NAME=:db', array('db' => $dbName));
+        $result = $this->_connection->fetchOne('SELECT SCHEMA_NAME FROM `INFORMATION_SCHEMA`.`SCHEMATA` WHERE SCHEMA_NAME=:db', ['db' => $dbName]);
         return $result !== false;
     }
 }

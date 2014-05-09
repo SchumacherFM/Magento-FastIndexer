@@ -45,13 +45,13 @@ class SchumacherFM_FastIndexer_Model_System_Config_Lock
     public function toOptionArray()
     {
         $helper = $this->getHelper();
-        return array(
-            array('value' => '', 'label' => $helper->__('Default (File based)')),
-            array('value' => 'semaphore', 'label' => $helper->__('Semaphore (Memory)')),
-            array('value' => 'shmop', 'label' => $helper->__('Shared Memory')),
-            array('value' => 'db', 'label' => $helper->__('Database')),
-            array('value' => 'session', 'label' => $helper->__('Session')),
-        );
+        return [
+            ['value' => '', 'label' => $helper->__('Default (File based)')],
+            ['value' => 'semaphore', 'label' => $helper->__('Semaphore (Memory)')],
+            ['value' => 'shmop', 'label' => $helper->__('Shared Memory')],
+            ['value' => 'db', 'label' => $helper->__('Database')],
+            ['value' => 'session', 'label' => $helper->__('Session')],
+        ];
     }
 
     /**
@@ -61,7 +61,7 @@ class SchumacherFM_FastIndexer_Model_System_Config_Lock
      */
     public function toOptionHash()
     {
-        $options = array();
+        $options = [];
         foreach ($this->toOptionArray() as $option) {
             $key           = $option['value'];
             $options[$key] = $option['label'];

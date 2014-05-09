@@ -37,6 +37,11 @@
                     <process>SchumacherFM_FastIndexer_Model_Index_Process</process>
                 </rewrite>
             </index>
+            <catalog_resource>
+                <rewrite>
+                    <url>SchumacherFM_FastIndexer_Model_Resource_Catalog_Url</url>
+                </rewrite>
+            </catalog_resource>
         </models>
 
         <resources>
@@ -352,6 +357,12 @@
             <indexer>
                 <lock_threshold>1800</lock_threshold>
             </indexer>
+            <url_indexer>
+                <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
+                <exclude_disabled_products>0</exclude_disabled_products>
+                <exclude_not_visible_products>0</exclude_not_visible_products>
+                <exclude_disable_categories>0</exclude_disable_categories>
+            </url_indexer>
         </fastindexer>
     </default>
     <phpunit>

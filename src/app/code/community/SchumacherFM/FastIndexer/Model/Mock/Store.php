@@ -12,11 +12,11 @@ class SchumacherFM_FastIndexer_Model_Mock_Store
 
     public function getConfig($path)
     {
-        $mapping = array(
+        $mapping = [
             'system/fastindexer/dbName1' => 'mock_test',
             'system/fastindexer/dbName2' => 'mock_test2',
             'system/fastindexer/enable'  => 0,
-        );
+        ];
         return isset($mapping[$path]) ? $mapping[$path] : null;
     }
 

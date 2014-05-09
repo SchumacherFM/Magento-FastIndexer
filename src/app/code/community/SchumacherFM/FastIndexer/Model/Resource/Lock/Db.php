@@ -9,7 +9,7 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
     /**
      * @var array
      */
-    protected $_indexerLocked = array();
+    protected $_indexerLocked = [];
 
     /**
      * Initialize  table and table pk
@@ -49,10 +49,10 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
      */
     public function endLock($indexerCode)
     {
-        $data = array(
+        $data = [
             'ended_at' => microtime(true),
             'locked'   => 0,
-        );
+        ];
         $this->_updateLockData($indexerCode, $data);
         return $this;
     }
@@ -65,11 +65,11 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
     public function startLock($indexerCode)
     {
         $t    = microtime(true);
-        $data = array(
+        $data = [
             'started_at' => $t,
             'ended_at'   => $t,
             'locked'     => 1,
-        );
+        ];
         $this->_updateLockData($indexerCode, $data);
         return $this;
     }
@@ -104,9 +104,9 @@ class SchumacherFM_FastIndexer_Model_Resource_Lock_Db extends Mage_Core_Model_Re
             return $this->_indexerLocked[$indexerCode];
         }
 
-        $bind = array(
+        $bind = [
             'ic' => $indexerCode
-        );
+        ];
         /** @var SchumacherFM_FastIndexer_Model_Db_Adapter_Pdo_Mysql $adapter */
         $adapter = $this->_getReadAdapter();
 
