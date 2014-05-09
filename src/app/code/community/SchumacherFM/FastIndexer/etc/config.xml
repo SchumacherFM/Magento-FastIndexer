@@ -80,7 +80,7 @@
                 </observers>
             </resource_get_tablename>
 
-            <before_reindex_process_catalog_product_attribute>
+            <fastindexer_before_reindex_process_catalog_product_attribute>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -88,7 +88,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalog_product_attribute>
+            </fastindexer_before_reindex_process_catalog_product_attribute>
             <after_reindex_process_catalog_product_attribute>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -99,7 +99,7 @@
                 </observers>
             </after_reindex_process_catalog_product_attribute>
 
-            <before_reindex_process_catalog_product_price>
+            <fastindexer_before_reindex_process_catalog_product_price>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -107,7 +107,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalog_product_price>
+            </fastindexer_before_reindex_process_catalog_product_price>
             <after_reindex_process_catalog_product_price>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -118,7 +118,7 @@
                 </observers>
             </after_reindex_process_catalog_product_price>
 
-            <before_reindex_process_catalog_url>
+            <fastindexer_before_reindex_process_catalog_url>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -126,7 +126,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalog_url>
+            </fastindexer_before_reindex_process_catalog_url>
             <after_reindex_process_catalog_url>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -137,7 +137,7 @@
                 </observers>
             </after_reindex_process_catalog_url>
 
-            <before_reindex_process_catalog_product_flat>
+            <fastindexer_before_reindex_process_catalog_product_flat>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -145,7 +145,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalog_product_flat>
+            </fastindexer_before_reindex_process_catalog_product_flat>
             <after_reindex_process_catalog_product_flat>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -156,7 +156,7 @@
                 </observers>
             </after_reindex_process_catalog_product_flat>
 
-            <before_reindex_process_catalog_category_flat>
+            <fastindexer_before_reindex_process_catalog_category_flat>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -164,7 +164,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalog_category_flat>
+            </fastindexer_before_reindex_process_catalog_category_flat>
             <after_reindex_process_catalog_category_flat>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -175,7 +175,7 @@
                 </observers>
             </after_reindex_process_catalog_category_flat>
 
-            <before_reindex_process_catalog_category_product>
+            <fastindexer_before_reindex_process_catalog_category_product>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -183,7 +183,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalog_category_product>
+            </fastindexer_before_reindex_process_catalog_category_product>
             <after_reindex_process_catalog_category_product>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -194,7 +194,7 @@
                 </observers>
             </after_reindex_process_catalog_category_product>
 
-            <before_reindex_process_catalogsearch_fulltext>
+            <fastindexer_before_reindex_process_catalogsearch_fulltext>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -202,7 +202,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalogsearch_fulltext>
+            </fastindexer_before_reindex_process_catalogsearch_fulltext>
             <after_reindex_process_catalogsearch_fulltext>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -213,7 +213,7 @@
                 </observers>
             </after_reindex_process_catalogsearch_fulltext>
 
-            <before_reindex_process_cataloginventory_stock>
+            <fastindexer_before_reindex_process_cataloginventory_stock>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -221,7 +221,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_cataloginventory_stock>
+            </fastindexer_before_reindex_process_cataloginventory_stock>
             <after_reindex_process_cataloginventory_stock>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -232,7 +232,7 @@
                 </observers>
             </after_reindex_process_cataloginventory_stock>
 
-            <before_reindex_process_catalogpermissions>
+            <fastindexer_before_reindex_process_catalogpermissions>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -240,7 +240,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalogpermissions>
+            </fastindexer_before_reindex_process_catalogpermissions>
             <after_reindex_process_catalogpermissions>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -251,7 +251,7 @@
                 </observers>
             </after_reindex_process_catalogpermissions>
 
-            <before_reindex_process_targetrule>
+            <fastindexer_before_reindex_process_targetrule>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -259,7 +259,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_targetrule>
+            </fastindexer_before_reindex_process_targetrule>
             <after_reindex_process_targetrule>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -270,7 +270,7 @@
                 </observers>
             </after_reindex_process_targetrule>
 
-            <before_reindex_process_tag_summary>
+            <fastindexer_before_reindex_process_tag_summary>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -278,7 +278,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_tag_summary>
+            </fastindexer_before_reindex_process_tag_summary>
             <after_reindex_process_tag_summary>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -289,7 +289,7 @@
                 </observers>
             </after_reindex_process_tag_summary>
 
-            <before_reindex_process_catalogpermissions>
+            <fastindexer_before_reindex_process_catalogpermissions>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -297,7 +297,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_catalogpermissions>
+            </fastindexer_before_reindex_process_catalogpermissions>
             <after_reindex_process_catalogpermissions>
                 <observers>
                     <schumacherfm_fastindexer>
@@ -308,7 +308,7 @@
                 </observers>
             </after_reindex_process_catalogpermissions>
 
-            <before_reindex_process_targetrule>
+            <fastindexer_before_reindex_process_targetrule>
                 <observers>
                     <schumacherfm_fastindexer>
                         <type>singleton</type>
@@ -316,7 +316,7 @@
                         <method>initIndexTables</method>
                     </schumacherfm_fastindexer>
                 </observers>
-            </before_reindex_process_targetrule>
+            </fastindexer_before_reindex_process_targetrule>
             <after_reindex_process_targetrule>
                 <observers>
                     <schumacherfm_fastindexer>

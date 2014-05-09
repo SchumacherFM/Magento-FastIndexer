@@ -71,7 +71,7 @@ trait SchumacherFM_FastIndexer_Model_Index_Process
                 '%s Index process is working now. Please try run this process later or remove the lock if no indexer is running!',
                 $this->getIndexer()->getName()));
         }
-        Mage::dispatchEvent('before_reindex_process_' . $this->getIndexerCode());
+        Mage::dispatchEvent('fastindexer_before_reindex_process_' . $this->getIndexerCode());
         return parent::reindexAll();
     }
 
