@@ -9,7 +9,7 @@
  */
 trait SchumacherFM_FastIndexer_Model_Index_ProcessTrait
 {
-
+    /** @var parent Mage_Index_Model_Process */
     /**
      * @var SchumacherFM_FastIndexer_Model_Lock_LockInterface
      */
