@@ -7,7 +7,7 @@
  * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-trait SchumacherFM_FastIndexer_Model_Index_Process
+trait SchumacherFM_FastIndexer_Model_Index_ProcessTrait
 {
 
     /**
