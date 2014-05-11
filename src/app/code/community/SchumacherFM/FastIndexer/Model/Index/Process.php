@@ -9,6 +9,8 @@
  */
 class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Process
 {
+    const BEFORE_REINDEX_PROCESS_EVENT = 'fastindexer_before_reindex_process_';
+
     /** @var parent Mage_Index_Model_Process */
     /**
      * @var SchumacherFM_FastIndexer_Model_Lock_LockInterface
@@ -71,7 +73,7 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
                 '%s Index process is working now. Please try run this process later or remove the lock if no indexer is running!',
                 $this->getIndexer()->getName()));
         }
-        Mage::dispatchEvent('fastindexer_before_reindex_process_' . $this->getIndexerCode());
+        Mage::dispatchEvent(self::BEFORE_REINDEX_PROCESS_EVENT . $this->getIndexerCode());
         return parent::reindexAll();
     }
 
