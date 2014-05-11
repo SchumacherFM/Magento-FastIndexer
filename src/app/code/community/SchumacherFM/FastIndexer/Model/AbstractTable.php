@@ -31,7 +31,7 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
      */
     protected $_shadowResourceCreated = null;
 
-    protected $_shadowDbName = [];
+    protected $_shadowDbName = array();
     protected $_currentDbName = null;
 
     /**

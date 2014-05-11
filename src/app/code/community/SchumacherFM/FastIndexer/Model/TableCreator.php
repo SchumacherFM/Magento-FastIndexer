@@ -12,7 +12,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     /**
      * @var array
      */
-    protected $_createdTables = [];
+    protected $_createdTables = array();
 
     /**
      * @var string
@@ -27,7 +27,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     /**
      * @var array
      */
-    protected $_isIndexTableListCache = [];
+    protected $_isIndexTableListCache = array();
 
     /**
      * Name of the current indexer
@@ -242,7 +242,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
      */
     public function unsetTables()
     {
-        $this->_createdTables = [];
+        $this->_createdTables = array();
         return $this;
     }
 }

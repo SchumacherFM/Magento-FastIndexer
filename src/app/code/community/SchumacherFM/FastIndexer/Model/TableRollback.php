@@ -113,7 +113,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     protected function _getTableEngine($tableName)
     {
         if (null === $this->_tableEngines) {
-            $this->_tableEngines = [];
+            $this->_tableEngines = array();
             /** @var Varien_Db_Statement_Pdo_Mysql $result */
             $result = $this->_rawQuery('SHOW TABLE STATUS FROM ' . $this->_getShadowDbName(true, 1) .
                 ' WHERE `name` NOT LIKE \'' . self::TABLE_PREFIX_PREFIX . '\'');
@@ -161,10 +161,10 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
             return null;
         }
 
-        $operations = [
+        $operations = array(
             'getForeignKeys' => 'dropForeignKey',
             'getIndexList'   => 'dropIndex',
-        ];
+        );
 
         foreach ($operations as $get => $drop) {
             $keyList = $this->_getConnection()->$get($tableName, $this->_getShadowDbName(false, 1));
@@ -203,7 +203,7 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
     {
         $tableName = $tableData['t'] . (empty($tableData['s']) ? '' : '_' . $tableData['s']);
         $oldTable  = $this->_getOldTablePrefix() . $tableName;
-        $tables    = [];
+        $tables    = array();
 
         // if in the default DB the table will not exists, simply rename without any other movings.
         if (false === $this->_getConnection()->isTableExists($tableName)) {
@@ -260,12 +260,12 @@ class SchumacherFM_FastIndexer_Model_TableRollback extends SchumacherFM_FastInde
         $columns = array_keys($allColumns);
 
         // these are all custom URLs entered by the store owner, slow due to regex
-        $customUrls = [
+        $customUrls = array(
             'id_path NOT RLIKE \'[0-9]+\_[0-9]+\'',
-        ];
+        );
         // copy everything
         if (true === $this->getHelper()->enableUrlRewriteCopyCustom()) {
-            $customUrls = ['1=1'];
+            $customUrls = array('1=1');
         }
 
         $select = 'SELECT ' . implode(',', $columns) . ' FROM `' . $_originalTableData['t'] . '`
