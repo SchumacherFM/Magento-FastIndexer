@@ -160,22 +160,24 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
             $products[$product->getId()] = $product;
             $lastEntityId                = $product->getId();
         }
-
         unset($rowSet);
 
         if ($products) {
-            $select     = $adapter->select()
-                ->from(
-                    $this->getTable('catalog/category_product'),
-                    array('product_id', 'category_id')
-                )
-                ->where('product_id IN(?)', array_keys($products));
-            $categories = $adapter->fetchAll($select);
-            foreach ($categories as $category) {
-                $productId     = $category['product_id'];
-                $categoryIds   = $products[$productId]->getCategoryIds();
-                $categoryIds[] = $category['category_id'];
-                $products[$productId]->setCategoryIds($categoryIds);
+
+            if (false === $this->_getHelper()->excludeCategoryPathInProductUrl($storeId)) {
+                $select     = $adapter->select()
+                    ->from(
+                        $this->getTable('catalog/category_product'),
+                        array('product_id', 'category_id')
+                    )
+                    ->where('product_id IN(?)', array_keys($products));
+                $categories = $adapter->fetchAll($select);
+                foreach ($categories as $category) {
+                    $productId     = $category['product_id'];
+                    $categoryIds   = $products[$productId]->getCategoryIds();
+                    $categoryIds[] = $category['category_id'];
+                    $products[$productId]->setCategoryIds($categoryIds);
+                }
             }
 
             foreach (array('name', 'url_key', 'url_path') as $attributeCode) {

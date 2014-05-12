@@ -219,4 +219,15 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_categories', $store);
     }
+
+    /**
+     * @param int $store
+     *
+     * @return bool
+     */
+    public function excludeCategoryPathInProductUrl($store = null)
+    {
+        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_category_path_in_product_url', $store);
+    }
+
 }
