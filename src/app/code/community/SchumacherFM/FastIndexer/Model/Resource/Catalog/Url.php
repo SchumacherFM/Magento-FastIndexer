@@ -112,7 +112,7 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
             $tAttrId    = (int)$this->_productAttributes[$attributeCode]['attribute_id'];
             $tTypeId    = (int)$this->_productAttributes[$attributeCode]['entity_type_id'];
 
-            if ($this->_productAttributes[$attributeCode]['is_global'] || $storeId == 0) {
+            if (1 === (int)$this->_productAttributes[$attributeCode]['is_global'] || $storeId == 0) {
                 $joinColumns = array(
                     $tableAlias . '.entity_type_id = ' . $tTypeId,
                     $tableAlias . '.store_id = 0',
@@ -162,15 +162,18 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
         }
         unset($rowSet);
 
-        if ($products) {
+        if (count($products) > 0) {
 
             if (false === $this->_getHelper()->excludeCategoryPathInProductUrl($storeId)) {
-                $select     = $adapter->select()
+                $select = $adapter->select()
                     ->from(
                         $this->getTable('catalog/category_product'),
                         array('product_id', 'category_id')
                     )
                     ->where('product_id IN(?)', array_keys($products));
+
+                $this->_excludeDisabledCategories($select, $storeId);
+
                 $categories = $adapter->fetchAll($select);
                 foreach ($categories as $category) {
                     $productId     = $category['product_id'];
@@ -189,6 +192,48 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
         }
 
         return $products;
+    }
+
+    /**
+     * fastIndexer method
+     *
+     * @param Varien_Db_Select $select
+     * @param                  $storeId
+     *
+     * @return $this
+     */
+    protected function _excludeDisabledCategories(Varien_Db_Select $select, $storeId)
+    {
+        if (false === $this->_getHelper()->excludeDisableCategories($storeId)) {
+            return $this;
+        }
+        $attributeCode = 'is_active';
+        $this->_getCategoryAttribute($attributeCode, -1, $storeId); // init attribute
+
+        $tableAlias   = 'tjIsActive';
+        $tAttrId      = (int)$this->_categoryAttributes[$attributeCode]['attribute_id'];
+        $disableValue = 0;
+        // <@todo remove duplicate code>
+        $t1        = 't1' . $tableAlias;
+        $t2        = 't2' . $tableAlias;
+        $mainTable = $this->getTable('catalog/category_product');
+        $valueExpr = $this->_getReadAdapter()->getCheckSql('IFNULL(' . $t2 . '.value_id,0) > 0', $t2 . '.value', $t1 . '.value');
+        $select
+            ->join(
+                array($t1 => $this->_categoryAttributes[$attributeCode]['table']),
+                $mainTable . '.category_id = ' . $t1 . '.entity_id AND ' . $t1 . '.store_id = 0 AND ' . $t1 . '.attribute_id = ' . $tAttrId,
+                array()
+            )
+            ->joinLeft(
+                array($t2 => $this->_categoryAttributes[$attributeCode]['table']),
+                $t1 . '.entity_id = ' . $t2 . '.entity_id AND ' . $t1 . '.attribute_id = ' . $t2 . '.attribute_id AND ' .
+                $t2 . '.store_id = ' . $storeId,
+                array()
+            );
+        $select->where($valueExpr . ' != ' . $disableValue);
+        // </@todo remove duplicate code>
+
+        return $this;
     }
 
     /**
