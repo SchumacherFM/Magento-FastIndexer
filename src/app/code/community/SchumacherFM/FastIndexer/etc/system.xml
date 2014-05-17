@@ -241,6 +241,16 @@
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>50</sort_order>
                         </exclude_category_path_in_product_url>
+                        <disable_joins_in_catalog_url_helper>
+                            <label>Disable URL rewrite joins in Catalog URL rewrite helper</label>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>60</sort_order>
+                            <comment>Test thoroughly before using in production! Speeds up the frontend! Per Request ~0.5sec faster.</comment>
+                        </disable_joins_in_catalog_url_helper>
                     </fields>
                 </url_indexer>
 
