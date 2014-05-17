@@ -7,10 +7,13 @@
  * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
-class SchumacherFM_FastIndexer_Model_Lock_Semaphore
+class SchumacherFM_FastIndexer_Model_Lock_Shmop
     extends SchumacherFM_FastIndexer_Model_Lock_Abstract
     implements SchumacherFM_FastIndexer_Model_Lock_LockInterface
 {
+
+    const PERM = 0666;
+    const LEN  = 512;
 
     /**
      * @var boolean
@@ -18,53 +21,21 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
     protected $_isLocked = null;
 
     /**
-     * @var resource
-     */
-    protected $_semId = null;
-
-    /**
      * @var null
      */
     protected $_shmId = null;
 
     /**
-     * @return string
-     */
-    public function getIndexerCodeCrc()
-    {
-        return sprintf('%u', crc32($this->getIndexerCode()));
-    }
-
-    /**
      * On any *nix use the commands ipcs and ipcrm to work with the memory
-     * @return resource
-     */
-    protected function _getSemIdentifier()
-    {
-        if (null !== $this->_semId) {
-            return $this->_semId;
-        }
-        $this->_semId = sem_get($this->getIndexerCodeCrc(), 8, 0666);
-        if (false === $this->_semId) {
-            Mage::throwException('FastIndexer: Cannot create semaphore id lock for ' . $this->getIndexerCode());
-        }
-        $this->_shmId = shm_attach($this->getIndexerCodeCrc(), 128);
-        return $this->_semId;
-    }
-
-    /**
+     *
      * Lock process without blocking.
      * This method allow protect multiple process running and fast lock validation.
-     *
      */
     public function lock()
     {
-        $success = sem_acquire($this->_getSemIdentifier());
-        shm_put_var($this->_shmId, $this->getIndexerCodeCrc(), $this->_getMicrotimeString());
-
-        if (false === $success) {
-            Mage::throwException('FastIndexer: Cannot acquire semaphore lock!');
-        }
+        $shmId = shmop_open($this->getIndexerId(), 'c', self::PERM, self::LEN);
+        shmop_write($shmId, $this->_getMicrotimeString(), 0);
+        shmop_close($shmId);
         $this->_isLocked = true;
     }
 
@@ -86,10 +57,9 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
      */
     public function unlock()
     {
-        $this->_getSemIdentifier();
-
-        shm_remove_var($this->_shmId, $this->getIndexerCodeCrc());
-        @sem_release($this->_getSemIdentifier());
+        $shmId = shmop_open($this->getIndexerId(), 'w', self::PERM, self::LEN);
+        shmop_write($shmId, str_repeat('0', $this->_getMicrotimeLen()), 0); // cannot delete because sometimes we're not the owner. so overwrite
+        shmop_close($shmId);
         $this->_isLocked = false;
     }
 
@@ -100,27 +70,23 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
      */
     public function isLocked()
     {
+        if (0 === $this->getIndexerId()) {
+            Mage::throwException('FastIndexer: IndexerId cannot be 0');
+        }
+
         if (null !== $this->_isLocked) {
             return $this->_isLocked;
         }
-        $this->_getSemIdentifier();
-        $startTime = @shm_get_var($this->_shmId, $this->getIndexerCodeCrc());
-
-        if (false === $startTime) {
+        $shmId = @shmop_open($this->getIndexerId(), 'a', self::PERM, self::LEN);
+        if (false === $shmId) {
             $this->_isLocked = false;
             return $this->_isLocked;
         }
+        $size      = shmop_size($shmId);
+        $startTime = shmop_read($shmId, 0, $size);
+        shmop_close($shmId);
+
         $this->_isLocked = $this->_isLockedByTtl((double)$startTime);
         return $this->_isLocked;
-    }
-
-    /**
-     * Close resource if it was opened
-     */
-    public function __destruct()
-    {
-        if ($this->_shmId) {
-            shm_detach($this->_shmId);
-        }
     }
 }

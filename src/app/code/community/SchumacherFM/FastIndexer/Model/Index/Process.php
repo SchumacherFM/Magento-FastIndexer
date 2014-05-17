@@ -58,7 +58,7 @@ class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Proc
             return false;
         }
         $this->_lockInstance = Mage::getModel('schumacherfm_fastindexer/lock_' . $userModel);
-        $this->_lockInstance->setIndexerCode($this->getIndexerCode());
+        $this->_lockInstance->setIndexerCode($this->getIndexerCode())->setIndexerId($this->getId());
         return $this->_lockInstance;
     }
 
