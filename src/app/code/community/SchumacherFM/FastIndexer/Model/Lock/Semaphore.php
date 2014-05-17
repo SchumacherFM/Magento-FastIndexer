@@ -53,6 +53,7 @@ class SchumacherFM_FastIndexer_Model_Lock_Semaphore
     }
 
     /**
+     * if an error like "not enough shared memory left" occurs then set  sysvshm.init_mem to a higher value
      * Lock process without blocking.
      * This method allow protect multiple process running and fast lock validation.
      *

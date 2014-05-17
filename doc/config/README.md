@@ -1,0 +1,3 @@
+# Configuration of FastIndexer
+
+Lorem Ipsum ...

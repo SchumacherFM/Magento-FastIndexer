@@ -29,7 +29,7 @@ class SchumacherFM_FastIndexer_Adminhtml_FastindexerController extends Mage_Admi
                 $process = Mage::getModel('index/process');
                 /*  Mage_Index_Model_Resource_Process_Collection $processCollection */
                 $processCollection = $process->getCollection()->load()->getItems();
-                $results           = array();
+                $results           = [];
                 foreach ($data as $id) {
                     $id = (int)$id;
                     if (isset($processCollection[$id])) {

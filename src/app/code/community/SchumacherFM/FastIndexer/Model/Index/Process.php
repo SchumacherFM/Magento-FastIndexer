@@ -9,8 +9,9 @@
  */
 class SchumacherFM_FastIndexer_Model_Index_Process extends Mage_Index_Model_Process
 {
-    const BEFORE_REINDEX_PROCESS_EVENT = 'before_reindex_process_';
+    const BEFORE_REINDEX_PROCESS_EVENT = 'fastindexer_before_reindex_process_';
 
+    /** @var parent Mage_Index_Model_Process */
     /**
      * @var SchumacherFM_FastIndexer_Model_Lock_LockInterface
      */
