@@ -21,12 +21,13 @@
                     <helper>schumacherfm_fastindexer/category_url_rewrite</helper>
                 </url_rewrite>
             </category>
-            <product>
-                <url_rewrite>
-                    <!--@see Mage_Catalog_Model_Factory; requires Magento CE >= 1.8-->
-                    <helper>schumacherfm_fastindexer/product_url_rewrite</helper>
-                </url_rewrite>
-            </product>
+            <!--removed as this is not necessary for products, but maybe in later version of mage -->
+            <!--<product>-->
+                <!--<url_rewrite>-->
+                    <!--&lt;!&ndash;@see Mage_Catalog_Model_Factory; requires Magento CE >= 1.8&ndash;&gt;-->
+                    <!--<helper>schumacherfm_fastindexer/product_url_rewrite</helper>-->
+                <!--</url_rewrite>-->
+            <!--</product>-->
         </catalog>
         <blocks>
             <schumacherfm_fastindexer>
