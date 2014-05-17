@@ -71,6 +71,16 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     }
 
     /**
+     * interface to check if the init has been done and we're running a full reindex
+     *
+     * @return bool
+     */
+    public function isInitIndexTables()
+    {
+        return $this->_initDone;
+    }
+
+    /**
      * @return bool
      * @throws InvalidArgumentException
      */
@@ -89,7 +99,7 @@ class SchumacherFM_FastIndexer_Model_TableCreator extends SchumacherFM_FastIndex
     }
 
     /**
-     * @fire resource_get_tablename -> every time you call getTableName ... and that s pretty often ...
+     * @fire resource_get_tablename -> every time you call getTableName ... and that's pretty often ...
      *       it only adds the shadow db name aka schema to the table
      *
      * @param Varien_Event_Observer $observer
