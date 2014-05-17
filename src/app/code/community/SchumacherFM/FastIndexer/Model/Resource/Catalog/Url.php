@@ -35,20 +35,6 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
     }
 
     /**
-     * Used in custom Model_Url
-     *
-     * @param $productIds
-     * @param $storeId
-     * @param $lastEntityId
-     *
-     * @return array
-     */
-//    public function getProductsByIds($productIds, $storeId, &$lastEntityId)
-//    {
-//        return $this->_getProducts($productIds, $storeId, $lastEntityId, $lastEntityId);
-//    }
-
-    /**
      * 8100 is disabled     id 17
      * W810i is not visible id 18
      *
