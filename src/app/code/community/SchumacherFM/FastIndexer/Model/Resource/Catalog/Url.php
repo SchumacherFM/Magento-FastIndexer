@@ -50,12 +50,10 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
     {
         $storeId = (int)$storeId;
 
-        if (false === $this->_getHelper()->isEnabled() ||
-            (
-                false === $this->_getHelper()->excludeDisabledProducts($storeId) &&
-                false === $this->_getHelper()->excludeNotVisibleProducts($storeId) &&
-                false === $this->_getHelper()->excludeDisableCategories($storeId)
-            )
+        if (
+            false === $this->_getHelper()->excludeDisabledProducts($storeId) &&
+            false === $this->_getHelper()->excludeNotVisibleProducts($storeId) &&
+            false === $this->_getHelper()->excludeDisableCategories($storeId)
         ) {
             return parent::_getProducts($productIds, $storeId, $entityId, $lastEntityId);
         }
@@ -260,7 +258,7 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
      */
     protected function _getCategories($categoryIds, $storeId = null, $path = null)
     {
-        if (false === $this->_getHelper()->isEnabled() || false === $this->_getHelper()->excludeDisabledCategories($storeId)) {
+        if (false === $this->_getHelper()->excludeDisabledCategories($storeId)) {
             return parent::_getCategories($categoryIds, $storeId, $path);
         }
 

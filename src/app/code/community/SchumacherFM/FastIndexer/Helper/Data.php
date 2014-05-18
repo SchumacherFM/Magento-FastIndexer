@@ -197,7 +197,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeDisabledProducts($store = null)
     {
-        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_products', $store);
+        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_products', $store);
     }
 
     /**
@@ -207,7 +207,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeNotVisibleProducts($store = null)
     {
-        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_not_visible_products', $store);
+        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_not_visible_products', $store);
     }
 
     /**
@@ -217,7 +217,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeDisabledCategories($store = null)
     {
-        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_categories', $store);
+        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_categories', $store);
     }
 
     /**
@@ -227,7 +227,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeCategoryPathInProductUrl($store = null)
     {
-        return Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_category_path_in_product_url', $store);
+        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_category_path_in_product_url', $store);
     }
 
     /**
@@ -237,7 +237,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function optimizeUrlRewriteFlatCategory()
     {
-        return
+        return $this->isEnabled() &&
             Mage::getStoreConfigFlag('fastindexer/url_indexer/optimize_url_rewrite_flat_category') &&
             Mage::getStoreConfigFlag('catalog/frontend/flat_catalog_category');
     }
