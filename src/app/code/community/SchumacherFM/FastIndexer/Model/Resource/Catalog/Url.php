@@ -35,8 +35,6 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
     }
 
     /**
-     * 8100 is disabled     id 17
-     * W810i is not visible id 18
      *
      * Retrieve Product data objects
      * LOE: remove if status(=2) is disabled or visibility(=1) false
