@@ -231,13 +231,11 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * @param int $store
-     *
      * @return bool
      */
-    public function disableAllCategoriesInUrlRewrite($store = null)
+    public function disableAllCategoriesInUrlRewrite()
     {
-        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/disable_all_categories_in_url_rewrite', $store);
+        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/disable_all_categories_in_url_rewrite');
     }
 
     /**
