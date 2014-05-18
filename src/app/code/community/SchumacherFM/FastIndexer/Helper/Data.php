@@ -231,12 +231,39 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * @param int $store
+     * Category Flat Tables must be enabled
      *
      * @return bool
      */
-    public function disableJoinsInCatalogUrlHelper($store = null)
+    public function optimizeUrlRewriteFlatCategory()
     {
-        return Mage::getStoreConfigFlag('fastindexer/url_indexer/disable_joins_in_catalog_url_helper', $store);
+        return
+            Mage::getStoreConfigFlag('fastindexer/url_indexer/optimize_url_rewrite_flat_category') &&
+            Mage::getStoreConfigFlag('catalog/frontend/flat_catalog_category');
+    }
+
+    /**
+     * Category Flat Tables must be enabled and Magento <= 1.7
+     *
+     * @return bool
+     */
+    public function optimizeUrlRewriteFlatCategory17()
+    {
+        return
+            version_compare(Mage::getVersion(),'1.7.9.9') < 0 &&
+            $this->optimizeUrlRewriteFlatCategory();
+    }
+
+    /**
+     * @param      $file
+     * @param      $line
+     * @param      $msg
+     * @param bool $die
+     */
+    public static function csdebug($file, $line, $msg, $die = false)
+    {
+        echo '<div style="text-align:left; border: 1px solid red; margin:0.5em; padding:0.5em; background-color:lightgreen; color:black;">
+        ' . $file . ':' . $line . '<br>' . PHP_EOL . $msg . '
+        </div>';
     }
 }

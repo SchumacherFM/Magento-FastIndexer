@@ -55,6 +55,8 @@
             <catalog_resource>
                 <rewrite>
                     <url>SchumacherFM_FastIndexer_Model_Resource_Catalog_Url</url>
+                    <category_flat>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat</category_flat>
+                    <category_flat_collection>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat_Collection</category_flat_collection>
                 </rewrite>
             </catalog_resource>
         </models>
@@ -378,7 +380,7 @@
                 <exclude_not_visible_products>0</exclude_not_visible_products>
                 <exclude_disabled_categories>0</exclude_disabled_categories>
                 <exclude_category_path_in_product_url>0</exclude_category_path_in_product_url>
-                <disable_joins_in_catalog_url_helper>0</disable_joins_in_catalog_url_helper>
+                <optimize_url_rewrite_flat_category>0</optimize_url_rewrite_flat_category>
             </url_indexer>
         </fastindexer>
     </default>
