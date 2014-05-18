@@ -112,7 +112,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
         if (null === $this->_shadowDbName) {
             $this->_shadowDbName = $this->getStore()->getConfig('fastindexer/databases/dbName' . $index);
             if (empty($this->_shadowDbName)) {
-                Mage::throwException('Shadow DB Name cannot be empty!');
+                Mage::throwException(__METHOD__ . ': Shadow DB Name cannot be empty!');
             }
         }
         return $this->_shadowDbName;
@@ -231,6 +231,16 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * @param int $store
+     *
+     * @return bool
+     */
+    public function disableAllCategoriesInUrlRewrite($store = null)
+    {
+        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/disable_all_categories_in_url_rewrite', $store);
+    }
+
+    /**
      * Category Flat Tables must be enabled
      *
      * @return bool
@@ -238,8 +248,8 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function optimizeUrlRewriteFlatCategory()
     {
         return $this->isEnabled() &&
-            Mage::getStoreConfigFlag('fastindexer/url_indexer/optimize_url_rewrite_flat_category') &&
-            Mage::getStoreConfigFlag('catalog/frontend/flat_catalog_category');
+        Mage::getStoreConfigFlag('fastindexer/url_indexer/optimize_url_rewrite_flat_category') &&
+        Mage::getStoreConfigFlag('catalog/frontend/flat_catalog_category');
     }
 
     /**
@@ -250,7 +260,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function optimizeUrlRewriteFlatCategory17()
     {
         return
-            version_compare(Mage::getVersion(),'1.7.9.9') < 0 &&
+            version_compare(Mage::getVersion(), '1.7.9.9') < 0 &&
             $this->optimizeUrlRewriteFlatCategory();
     }
 
