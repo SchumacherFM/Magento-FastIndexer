@@ -40,9 +40,9 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     protected $_config = null;
 
     /**
-     * @var Mage_Core_Model_Store
+     * @var array
      */
-    protected $_store = null;
+    protected $_store = array();
 
     /**
      * @param Mage_Core_Model_Config $config
@@ -50,8 +50,8 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function __construct(Mage_Core_Model_Config $config = null, Mage_Core_Model_Store $store = null)
     {
-        $this->_config = $config;
-        $this->_store  = $store;
+        $this->_config    = $config;
+        $this->_store[-1] = $store;
     }
 
     /**
@@ -72,18 +72,32 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      * My model mock_store is a temp work around until a the phpunit event phpunit_suite_start_after has been
      * fired to notify this helper that the stores has been loaded
      *
+     * @param int $id
+     *
      * @return Mage_Core_Model_Store
      */
-    public function getStore()
+    public function getStore($id = null)
     {
-        if (null === $this->_store) {
+        $index = null === $id ? -1 : (int)$id;
+        if (false === isset($this->_store[$index])) {
             try {
-                $this->_store = Mage::app()->getStore();
+                $this->_store[$index] = Mage::app()->getStore($id);
             } catch (Mage_Core_Model_Store_Exception $e) {
-                $this->_store = Mage::getModel('schumacherfm_fastindexer/mock_store');
+                $this->_store[$index] = Mage::getModel('schumacherfm_fastindexer/mock_store');
             }
         }
-        return $this->_store;
+        return $this->_store[$index];
+    }
+
+    /**
+     * @param     $path The config path
+     * @param int $id
+     *
+     * @return bool
+     */
+    public function getStoreConfigFlag($path, $id = null)
+    {
+        return (int)$this->getStore($id)->getConfig($path) === 1;
     }
 
     /**
@@ -92,7 +106,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function reinitHelper()
     {
-        $this->_store                    = null;
+        $this->_store                    = array();
         $this->_isEnabled                = null;
         $this->_shadowDbName             = null;
         $this->_currentDbName            = null;
@@ -140,7 +154,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function isEnabled()
     {
         if (null === $this->_isEnabled) {
-            $enabled          = (int)$this->getStore()->getConfig('fastindexer/general/is_active') === 1;
+            $enabled          = $this->getStoreConfigFlag('fastindexer/general/is_active');
             $this->_isEnabled = $this->isPdoFastIndexerInstance() && true === $enabled;
         }
         return $this->_isEnabled;
@@ -163,7 +177,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function dropOldTable()
     {
-        return Mage::getStoreConfigFlag('fastindexer/general/dropOldTable');
+        return $this->getStoreConfigFlag('fastindexer/general/dropOldTable');
     }
 
     /**
@@ -171,7 +185,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function optimizeTables()
     {
-        return Mage::getStoreConfigFlag('fastindexer/general/optimizeTables');
+        return $this->getStoreConfigFlag('fastindexer/general/optimizeTables');
     }
 
     /**
@@ -179,7 +193,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function enableUrlRewriteCopyCustom()
     {
-        return Mage::getStoreConfigFlag('fastindexer/url_indexer/urlRewriteCopyCustom');
+        return $this->getStoreConfigFlag('fastindexer/url_indexer/urlRewriteCopyCustom');
     }
 
     /**
@@ -197,7 +211,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeDisabledProducts($store = null)
     {
-        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_products', $store);
+        return $this->isEnabled() && $this->getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_products', $store);
     }
 
     /**
@@ -207,7 +221,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeNotVisibleProducts($store = null)
     {
-        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_not_visible_products', $store);
+        return $this->isEnabled() && $this->getStoreConfigFlag('fastindexer/url_indexer/exclude_not_visible_products', $store);
     }
 
     /**
@@ -217,7 +231,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeDisabledCategories($store = null)
     {
-        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_categories', $store);
+        return $this->isEnabled() && $this->getStoreConfigFlag('fastindexer/url_indexer/exclude_disabled_categories', $store);
     }
 
     /**
@@ -227,7 +241,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function excludeCategoryPathInProductUrl($store = null)
     {
-        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/exclude_category_path_in_product_url', $store);
+        return $this->isEnabled() && $this->getStoreConfigFlag('fastindexer/url_indexer/exclude_category_path_in_product_url', $store);
     }
 
     /**
@@ -235,7 +249,7 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
      */
     public function disableAllCategoriesInUrlRewrite()
     {
-        return $this->isEnabled() && Mage::getStoreConfigFlag('fastindexer/url_indexer/disable_all_categories_in_url_rewrite');
+        return $this->isEnabled() && $this->getStoreConfigFlag('fastindexer/url_indexer/disable_all_categories_in_url_rewrite');
     }
 
     /**
@@ -246,8 +260,8 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function optimizeUrlRewriteFlatCategory()
     {
         return $this->isEnabled() &&
-        Mage::getStoreConfigFlag('fastindexer/url_indexer/optimize_url_rewrite_flat_category') &&
-        Mage::getStoreConfigFlag('catalog/frontend/flat_catalog_category');
+        $this->getStoreConfigFlag('fastindexer/url_indexer/optimize_url_rewrite_flat_category') &&
+        $this->getStoreConfigFlag('catalog/frontend/flat_catalog_category');
     }
 
     /**
