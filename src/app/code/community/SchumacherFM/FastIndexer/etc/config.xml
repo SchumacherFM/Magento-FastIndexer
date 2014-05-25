@@ -430,13 +430,22 @@
             </controller_action_postdispatch_adminhtml_process_reindexProcess>
             <adminhtml_block_html_before>
                 <observers>
-                    <schumacherfm_fastindexer>
+                    <schumacherfm_fastindexer_ma>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/observer</class>
-                        <method>updateIndexerMassAction</method>
-                    </schumacherfm_fastindexer>
+                        <method>updateIndexerGrid</method>
+                    </schumacherfm_fastindexer_ma>
                 </observers>
             </adminhtml_block_html_before>
+            <process_collection_load_before>
+                <observers>
+                    <schumacherfm_fastindexer_ma>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/observer</class>
+                        <method>addEventCount</method>
+                    </schumacherfm_fastindexer_ma>
+                </observers>
+            </process_collection_load_before>
         </events>
     </adminhtml>
 </config>
