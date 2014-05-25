@@ -24,6 +24,9 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat19 extends Sc
      */
     protected function _loadNodes($parentNode = null, $recursionLevel = 0, $storeId = 0, $onlyActive = true)
     {
-        $this->_fastIndexerLoadNodes($parentNode, $recursionLevel, $storeId);
+        if (false === $this->_getFiHelper()->optimizeUrlRewriteFlatCategory17()) {
+            return parent::_loadNodes($parentNode, $recursionLevel, $storeId, $onlyActive);
+        }
+        return $this->_fastIndexerLoadNodes($parentNode, $recursionLevel, $storeId);
     }
 }

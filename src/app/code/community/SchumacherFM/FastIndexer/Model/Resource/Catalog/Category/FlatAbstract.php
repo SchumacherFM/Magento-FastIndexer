@@ -9,7 +9,6 @@
  */
 abstract class SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_FlatAbstract extends Mage_Catalog_Model_Resource_Category_Flat
 {
-
     /**
      * @return SchumacherFM_FastIndexer_Helper_Data
      */
@@ -29,10 +28,6 @@ abstract class SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_FlatAbst
      */
     protected function _fastIndexerLoadNodes($parentNode = null, $recursionLevel = 0, $storeId = 0)
     {
-        if (false === $this->_getFiHelper()->optimizeUrlRewriteFlatCategory17()) {
-            return parent::_loadNodes($parentNode, $recursionLevel, $storeId);
-        }
-
         $_conn      = $this->_getReadAdapter();
         $startLevel = 1;
         $parentPath = '';
@@ -78,7 +73,6 @@ abstract class SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_FlatAbst
         if (!empty($inactiveCategories)) {
             $select->where('main_table.entity_id NOT IN (?)', $inactiveCategories);
         }
-        // SchumacherFM_FastIndexer_Helper_Data::csdebug(__FILE__, __LINE__, $select);
         // Allow extensions to modify select (e.g. add custom category attributes to select)
         Mage::dispatchEvent('catalog_category_flat_loadnodes_before', array('select' => $select));
 

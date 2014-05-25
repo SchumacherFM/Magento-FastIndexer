@@ -20,6 +20,9 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat extends Schu
      */
     protected function _loadNodes($parentNode = null, $recursionLevel = 0, $storeId = 0)
     {
+        if (false === $this->_getFiHelper()->optimizeUrlRewriteFlatCategory17()) {
+            return parent::_loadNodes($parentNode, $recursionLevel, $storeId);
+        }
         return $this->_fastIndexerLoadNodes($parentNode, $recursionLevel, $storeId);
     }
 }

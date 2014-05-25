@@ -31,7 +31,6 @@ class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_
         } else {
             $collection->getSelect()->columns('main_table.url_path as request_path');
         }
-        SchumacherFM_FastIndexer_Helper_Data::csdebug(__FILE__, __LINE__, $collection->getSelect());
         return $this;
     }
 
@@ -50,7 +49,6 @@ class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_
         } else {
             $collection->getSelect()->columns('main_table.url_path as request_path');
         }
-        SchumacherFM_FastIndexer_Helper_Data::csdebug(__FILE__, __LINE__, $collection->getSelect());
         return $this;
     }
 
@@ -69,7 +67,6 @@ class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_
         } else {
             $select->columns('main_table.url_path as request_path');
         }
-        SchumacherFM_FastIndexer_Helper_Data::csdebug(__FILE__, __LINE__, $select);
         return $this;
     }
 }
