@@ -53,7 +53,7 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
         if (
             false === $this->_getHelper()->excludeDisabledProducts($storeId) &&
             false === $this->_getHelper()->excludeNotVisibleProducts($storeId) &&
-            false === $this->_getHelper()->excludeDisableCategories($storeId)
+            false === $this->_getHelper()->excludeDisabledCategories($storeId)
         ) {
             return parent::_getProducts($productIds, $storeId, $entityId, $lastEntityId);
         }
