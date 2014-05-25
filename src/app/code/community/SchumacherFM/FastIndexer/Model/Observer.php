@@ -58,4 +58,20 @@ class SchumacherFM_FastIndexer_Model_Observer
 
         return null;
     }
+
+    /**
+     * Because of PHP Strict when function signatures won't match
+     * @fire controller_front_init_before
+     *
+     * @param Varien_Event_Observer $observer
+     */
+    public function rewriteCatalogResourceCategoryFlat(Varien_Event_Observer $observer)
+    {
+        $isMagento19 = version_compare(Mage::getVersion(), '1.9') > 0 ? '19' : '';
+        $config      = Mage::getConfig();
+        $config->setNode(
+            'global/models/catalog_resource/rewrite/category_flat',
+            'SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat' . $isMagento19
+        );
+    }
 }

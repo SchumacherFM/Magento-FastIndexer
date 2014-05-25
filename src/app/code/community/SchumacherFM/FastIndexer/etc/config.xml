@@ -60,7 +60,8 @@
             <catalog_resource>
                 <rewrite>
                     <url>SchumacherFM_FastIndexer_Model_Resource_Catalog_Url</url>
-                    <category_flat>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat</category_flat>
+                    <!--@see observer::rewriteCatalogResourceCategoryFlat() where the dyn rewrite happens-->
+                    <!--<category_flat>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat</category_flat>-->
                     <category_flat_collection>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat_Collection</category_flat_collection>
                 </rewrite>
             </catalog_resource>
@@ -82,6 +83,15 @@
         </helpers>
 
         <events>
+            <controller_front_init_before>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <class>schumacherfm_fastindexer/observer</class>
+                        <method>rewriteCatalogResourceCategoryFlat</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </controller_front_init_before>
+
             <phpunit_suite_start_after>
                 <observers>
                     <schumacherfm_fastindexer_store_notifier>
