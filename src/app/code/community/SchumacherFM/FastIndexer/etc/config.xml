@@ -33,6 +33,11 @@
             <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Block</class>
             </schumacherfm_fastindexer>
+            <index>
+                <rewrite>
+                    <adminhtml_notifications>SchumacherFM_FastIndexer_Block_Adminhtml_Index_Notifications</adminhtml_notifications>
+                </rewrite>
+            </index>
         </blocks>
         <models>
             <schumacherfm_fastindexer>
