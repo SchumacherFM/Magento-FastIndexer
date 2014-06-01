@@ -5,7 +5,8 @@
     "description": "Makes indexing of your Magento store around x% faster!",
     "homepage": "https://github.com/schumacherfm",
     "require": {
-        "magento-hackathon/magento-composer-installer": "*"
+        "magento-hackathon/magento-composer-installer": "*",
+        "schumacherfm/asyncsave": "dev-master"
     },
     "authors": [
         {
