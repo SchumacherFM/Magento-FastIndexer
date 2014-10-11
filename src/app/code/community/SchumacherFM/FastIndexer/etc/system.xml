@@ -170,7 +170,60 @@
                                     <value>1</value>
                                 </is_active>
                             </depends>
+                            <validate>validate-number</validate>
                         </lock_threshold>
+
+                        <enable_cron_index>
+                            <label>Enable Cron Indexing</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>110</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
+                            <comment>
+                                Note that update mode must be manual!
+                            </comment>
+                        </enable_cron_index>
+                        <scheduler_cron_expr>
+                            <label>Crontab</label>
+                            <comment>Cron expressions. (E.g. "20 * * * *")</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>120</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <enable_cron_index>
+                                    <value>1</value>
+                                </enable_cron_index>
+                            </depends>
+                        </scheduler_cron_expr>
+                        <max_events_before_full_reindex>
+                            <validate>validate-number</validate>
+                            <label>Max Events before full reindex</label>
+                            <comment>
+                                Maximum number of events before a full reindex will be executed.
+                            </comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>130</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <enable_cron_index>
+                                    <value>1</value>
+                                </enable_cron_index>
+                            </depends>
+                        </max_events_before_full_reindex>
+
                     </fields>
                 </indexer>
                 <url_indexer translate="label" module="schumacherfm_fastindexer">
@@ -213,6 +266,13 @@
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>20</sort_order>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
                         </exclude_disabled_products>
                         <exclude_not_visible_products>
                             <label>Exclude not visible product</label>
@@ -222,6 +282,13 @@
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>30</sort_order>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
                         </exclude_not_visible_products>
                         <exclude_disabled_categories>
                             <label>Exclude disabled categories</label>
@@ -231,6 +298,13 @@
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>40</sort_order>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
                         </exclude_disabled_categories>
                         <exclude_category_path_in_product_url>
                             <label>Exclude category path in product url</label>
@@ -240,17 +314,53 @@
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>50</sort_order>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
                         </exclude_category_path_in_product_url>
-                        <disable_joins_in_catalog_url_helper>
-                            <label>Disable URL rewrite joins in Catalog URL rewrite helper</label>
+                        <optimize_url_rewrite_flat_category>
+                            <label>Optimize URL Rewrite Select for Flat Categories</label>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>60</sort_order>
-                            <comment>Test thoroughly before using in production! Speeds up the frontend! Per Request ~0.5sec faster.</comment>
-                        </disable_joins_in_catalog_url_helper>
+                            <comment>Flat Tables must be enabled! This query uses the column url_path from the table
+                                catalog_category_flat_store_XXX instead of the request_path from core_url_rewrite.
+                            </comment>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
+                        </optimize_url_rewrite_flat_category>
+
+                        <disable_all_categories_in_url_rewrite>
+                            <label>Do not index categories in URL rewrite table.</label>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>170</sort_order>
+                            <comment>E.g. useful when you what to have the categories in SOLR but do not want to
+                                access them via a frontend URL.
+                            </comment>
+                            <depends>
+                                <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
+                                <is_active>
+                                    <fieldset>general</fieldset>
+                                    <value>1</value>
+                                </is_active>
+                            </depends>
+                        </disable_all_categories_in_url_rewrite>
                     </fields>
                 </url_indexer>
 

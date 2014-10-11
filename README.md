@@ -14,7 +14,7 @@ No more empty results in the frontend due to a long taking reindex process!
 - Limits the amount of SQL queries in some cases
 - Even integrates into your custom indexer processes (theoretically, talk to me).
 - Indexer (catalogpermissions & targetrule) for Enterprise Edition will also be considered
-- Removes unnecessary joins with url rewrite table in frontend selects
+- Removes "unnecessary" joins with url rewrite table in frontend selects (Requires Magento CE >= 1.8)
 
 The FastIndexer is only available on the command line.
 

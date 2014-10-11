@@ -85,9 +85,9 @@ abstract class SchumacherFM_FastIndexer_Model_AbstractTable
     protected function _getShadowDbName($quote = false, $index = 1)
     {
         if (false === isset($this->_shadowDbName[$index])) {
-            $this->_shadowDbName[$index] = trim(Mage::getStoreConfig('system/fastindexer/dbName' . $index));
+            $this->_shadowDbName[$index] = trim(Mage::getStoreConfig('fastindexer/databases/dbName' . $index));
             if (empty($this->_shadowDbName[$index])) {
-                Mage::throwException('Shadow DB Name cannot be empty!');
+                Mage::throwException(__METHOD__ . ': Shadow DB Name cannot be empty!');
             }
         }
         if (true === $quote) {

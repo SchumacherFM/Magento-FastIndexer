@@ -35,22 +35,6 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
     }
 
     /**
-     * Used in custom Model_Url
-     *
-     * @param $productIds
-     * @param $storeId
-     * @param $lastEntityId
-     *
-     * @return array
-     */
-//    public function getProductsByIds($productIds, $storeId, &$lastEntityId)
-//    {
-//        return $this->_getProducts($productIds, $storeId, $lastEntityId, $lastEntityId);
-//    }
-
-    /**
-     * 8100 is disabled     id 17
-     * W810i is not visible id 18
      *
      * Retrieve Product data objects
      * LOE: remove if status(=2) is disabled or visibility(=1) false
@@ -66,12 +50,10 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
     {
         $storeId = (int)$storeId;
 
-        if (false === $this->_getHelper()->isEnabled() ||
-            (
-                false === $this->_getHelper()->excludeDisabledProducts($storeId) &&
-                false === $this->_getHelper()->excludeNotVisibleProducts($storeId) &&
-                false === $this->_getHelper()->excludeDisableCategories($storeId)
-            )
+        if (
+            false === $this->_getHelper()->excludeDisabledProducts($storeId) &&
+            false === $this->_getHelper()->excludeNotVisibleProducts($storeId) &&
+            false === $this->_getHelper()->excludeDisabledCategories($storeId)
         ) {
             return parent::_getProducts($productIds, $storeId, $entityId, $lastEntityId);
         }
@@ -276,7 +258,7 @@ class SchumacherFM_FastIndexer_Model_Resource_Catalog_Url extends Mage_Catalog_M
      */
     protected function _getCategories($categoryIds, $storeId = null, $path = null)
     {
-        if (false === $this->_getHelper()->isEnabled() || false === $this->_getHelper()->excludeDisabledCategories($storeId)) {
+        if (false === $this->_getHelper()->excludeDisabledCategories($storeId)) {
             return parent::_getCategories($categoryIds, $storeId, $path);
         }
 

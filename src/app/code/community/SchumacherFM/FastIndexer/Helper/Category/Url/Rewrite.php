@@ -7,6 +7,12 @@
  * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
+
+/**
+ * Only applicable for Magento >= 1.8
+ *
+ * Class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite
+ */
 class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_Helper_Category_Url_Rewrite
 {
 
@@ -20,10 +26,11 @@ class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_
      */
     public function joinTableToEavCollection(Mage_Eav_Model_Entity_Collection_Abstract $collection, $storeId)
     {
-        if (false === Mage::helper('schumacherfm_fastindexer')->disableJoinsInCatalogUrlHelper($storeId)) {
+        if (false === Mage::helper('schumacherfm_fastindexer')->optimizeUrlRewriteFlatCategory()) {
             parent::joinTableToEavCollection($collection, $storeId);
+        } else {
+            $collection->getSelect()->columns('main_table.url_path as request_path');
         }
-        echo __LINE__ . ': ' . $collection->getSelect()->__toString();
         return $this;
     }
 
@@ -37,10 +44,11 @@ class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_
      */
     public function joinTableToCollection(Mage_Catalog_Model_Resource_Category_Flat_Collection $collection, $storeId)
     {
-        if (false === Mage::helper('schumacherfm_fastindexer')->disableJoinsInCatalogUrlHelper($storeId)) {
+        if (false === Mage::helper('schumacherfm_fastindexer')->optimizeUrlRewriteFlatCategory()) {
             parent::joinTableToCollection($collection, $storeId);
+        } else {
+            $collection->getSelect()->columns('main_table.url_path as request_path');
         }
-        echo __LINE__ . ': ' . $collection->getSelect()->__toString();
         return $this;
     }
 
@@ -54,10 +62,11 @@ class SchumacherFM_FastIndexer_Helper_Category_Url_Rewrite extends Mage_Catalog_
      */
     public function joinTableToSelect(Varien_Db_Select $select, $storeId)
     {
-        if (false === Mage::helper('schumacherfm_fastindexer')->disableJoinsInCatalogUrlHelper($storeId)) {
+        if (false === Mage::helper('schumacherfm_fastindexer')->optimizeUrlRewriteFlatCategory()) {
             parent::joinTableToSelect($select, $storeId);
+        } else {
+            $select->columns('main_table.url_path as request_path');
         }
-        echo __LINE__ . ': ' . $select->__toString();
         return $this;
     }
 }

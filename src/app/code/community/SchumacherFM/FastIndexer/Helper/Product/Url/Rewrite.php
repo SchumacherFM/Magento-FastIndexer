@@ -7,6 +7,12 @@
  * @license   see LICENSE.md file
  * @author    Cyrill at Schumacher dot fm @SchumacherFM
  */
+
+/**
+ * Not activated in config.xml!!! because not needed
+ *
+ * Class SchumacherFM_FastIndexer_Helper_Product_Url_Rewrite
+ */
 class SchumacherFM_FastIndexer_Helper_Product_Url_Rewrite extends Mage_Catalog_Helper_Product_Url_Rewrite
 {
 
