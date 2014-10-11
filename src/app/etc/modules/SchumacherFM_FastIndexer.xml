@@ -2,7 +2,7 @@
 <config>
     <modules>
         <SchumacherFM_FastIndexer>
-            <active>true</active>
+            <active>false</active>
             <codePool>community</codePool>
         </SchumacherFM_FastIndexer>
     </modules>
