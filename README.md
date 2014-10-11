@@ -1,14 +1,16 @@
-FastIndexer
+FastIndexer WIP
 ===========
+
+WIP = Work in Progress
 
 No more empty results in the frontend due to a long taking reindex process!
 
 - Integrates seamlessly into the existing Magento indexer process.
-- Does not change the core Magento indexer logic!
+- Does not change the core Magento indexer logic! (Except URL rewrite if you wish)
 - Only one class rewrite! (Adding an event in `Mage_Index_Model_Process::reindexAll()`)
 - Indexing blocks the frontend for only ~0.003 seconds instead of minutes with the normal indexer.
 - The frontend will not be affected anymore by any reindex process.
-- Speeds up some indexing processes of your Magento store.
+- Speeds up some indexing processes of your Magento store. 
 - You can enable or disable the module in the backend and test the speed difference by yourself.
 - Full reindexing now even under high frontend load possible (Citation/Test needed ... ).
 - Limits the amount of SQL queries in some cases
@@ -151,9 +153,9 @@ On my MacBook Air Mid 2012 tested with the following stores.
 
 Condition for all tests:
 
-- No load on the frontend.
-- Just indexing of previous reindexed tables.
-- All indexe commands ran 3x and the median has been calculated.
+- No load on the frontend. 
+- Just indexing of previous reindexed tables. 
+- All indexe commands ran 3x and the median has been calculated. 
 - `SET GLOBAL query_cache_type=OFF;` has been set.
 - At the 4th run all queries have been counted in `Zend_Db_Statement_Pdo::_execute()`.
 
@@ -229,15 +231,16 @@ About/History
 
 Extension key: SchumacherFM_FastIndexer
 
-Version 1.0.0
+Version 0.0.1
 
 - Initial Release
+- Not ready for production, WIP.
 
 Compatibility
 -------------
 
 - Magento CE >= 1.6.2
-- php >= 5.4.0
+- php >= 5.3.0
 
 The FastIndexer will not run with Magento CE < 1.6.2 because elementary events are missing. If you are interested in running FastIndexer with lower Magneto version write me, there is a solution.
 
@@ -247,11 +250,12 @@ Support / Contribution
 
 Report a bug using the issue tracker.
 
+Clients with in-depth Magento knowledge can have access to the private git repository. Contribution guidelines will follow.
 
 Licence
 -------
 
-Don't know. Maybe still closed source but you'll get it with a donation to [http://www.seashepherd.org/](http://www.seashepherd.org/)
+Proprietary
 
 Author
 ------
