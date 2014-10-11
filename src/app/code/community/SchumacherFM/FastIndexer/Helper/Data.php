@@ -90,8 +90,8 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * @param     $path The config path
-     * @param int $id
+     * @param string $path The config path
+     * @param int    $id
      *
      * @return bool
      */
@@ -202,6 +202,11 @@ class SchumacherFM_FastIndexer_Helper_Data extends Mage_Core_Helper_Abstract
     public function getLockThreshold()
     {
         return (int)Mage::getStoreConfig('fastindexer/indexer/lock_threshold');
+    }
+
+    public function isCronAutoIndexEnabled()
+    {
+        return $this->getStoreConfigFlag('fastindexer/indexer/enable_cron_index');
     }
 
     /**

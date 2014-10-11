@@ -33,6 +33,11 @@
             <schumacherfm_fastindexer>
                 <class>SchumacherFM_FastIndexer_Block</class>
             </schumacherfm_fastindexer>
+            <index>
+                <rewrite>
+                    <adminhtml_notifications>SchumacherFM_FastIndexer_Block_Adminhtml_Index_Notifications</adminhtml_notifications>
+                </rewrite>
+            </index>
         </blocks>
         <models>
             <schumacherfm_fastindexer>
@@ -60,7 +65,8 @@
             <catalog_resource>
                 <rewrite>
                     <url>SchumacherFM_FastIndexer_Model_Resource_Catalog_Url</url>
-                    <category_flat>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat</category_flat>
+                    <!--@see observer::rewriteCatalogResourceCategoryFlat() where the dyn rewrite happens-->
+                    <!--<category_flat>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat</category_flat>-->
                     <category_flat_collection>SchumacherFM_FastIndexer_Model_Resource_Catalog_Category_Flat_Collection</category_flat_collection>
                 </rewrite>
             </catalog_resource>
@@ -82,6 +88,15 @@
         </helpers>
 
         <events>
+            <controller_front_init_before>
+                <observers>
+                    <schumacherfm_fastindexer>
+                        <class>schumacherfm_fastindexer/observer</class>
+                        <method>rewriteCatalogResourceCategoryFlat</method>
+                    </schumacherfm_fastindexer>
+                </observers>
+            </controller_front_init_before>
+
             <phpunit_suite_start_after>
                 <observers>
                     <schumacherfm_fastindexer_store_notifier>
@@ -376,7 +391,11 @@
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
             </general>
             <indexer>
+                <lock_model/>
                 <lock_threshold>1800</lock_threshold>
+                <enable_cron_index>1</enable_cron_index>
+                <scheduler_cron_expr>*/5 * * * *</scheduler_cron_expr>
+                <max_events_before_full_reindex>5</max_events_before_full_reindex>
             </indexer>
             <url_indexer>
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
@@ -420,13 +439,39 @@
             </controller_action_postdispatch_adminhtml_process_reindexProcess>
             <adminhtml_block_html_before>
                 <observers>
-                    <schumacherfm_fastindexer>
+                    <schumacherfm_fastindexer_ma>
                         <type>singleton</type>
                         <class>schumacherfm_fastindexer/observer</class>
-                        <method>updateIndexerMassAction</method>
-                    </schumacherfm_fastindexer>
+                        <method>updateIndexerGrid</method>
+                    </schumacherfm_fastindexer_ma>
                 </observers>
             </adminhtml_block_html_before>
+            <process_collection_load_before>
+                <observers>
+                    <schumacherfm_fastindexer_ma>
+                        <type>singleton</type>
+                        <class>schumacherfm_fastindexer/observer</class>
+                        <method>addEventCount</method>
+                    </schumacherfm_fastindexer_ma>
+                </observers>
+            </process_collection_load_before>
         </events>
     </adminhtml>
+    <crontab>
+        <jobs>
+            <schumacherfm_fastindexer_cron>
+                <run>
+                    <model>schumacherfm_fastindexer/cron::execLastQueuedIndexer</model>
+                </run>
+            </schumacherfm_fastindexer_cron>
+            <schumacherfm_fastindexer_events_cron>
+                <schedule>
+                    <config_path>fastindexer/indexer/scheduler_cron_expr</config_path>
+                </schedule>
+                <run>
+                    <model>schumacherfm_fastindexer/cron::unprocessed_events_index</model>
+                </run>
+            </schumacherfm_fastindexer_events_cron>
+        </jobs>
+    </crontab>
 </config>

@@ -61,4 +61,38 @@ class SchumacherFM_FastIndexer_Adminhtml_FastindexerController extends Mage_Admi
         }
         $this->_redirect('*/process/list');
     }
+
+    public function scheduleReindexAction()
+    {
+        $this->_addIndexerToSchedule(true);
+        $this->_redirect('*/process/list');
+    }
+
+    public function schedulePartialAction()
+    {
+        $this->_addIndexerToSchedule(false);
+        $this->_redirect('*/process/list');
+    }
+
+    protected function _addIndexerToSchedule($isFull = true)
+    {
+        $helper    = Mage::helper('schumacherfm_fastindexer');
+        $name      = true === $isFull ? 'Full Reindex' : 'Partial Reindex';
+        $processId = (int)$this->getRequest()->getParam('process', 0);
+        try {
+            /** @var SchumacherFM_FastIndexer_Model_Cron $cron */
+            $cron = Mage::getModel('schumacherfm_fastindexer/cron');
+            $cron
+                ->setProcessId($processId)
+                ->setFullReindex(true === $isFull)
+                ->addIndexerProcessToCronSchedule();
+            Mage::getSingleton('adminhtml/session')->addSuccess(
+                $helper->__('%s: Successfully added %s to cron scheduler.', $name, $cron->getIndexerCodeByProcessId())
+            );
+        } catch (InvalidArgumentException $e) {
+            Mage::getSingleton('adminhtml/session')->addError($helper->__('%s: %s', $name, $e->getMessage()));
+        } catch (Exception $e) {
+            Mage::getSingleton('adminhtml/session')->addError($helper->__('%s: Failed to add Process %s to scheduler', $name, $processId));
+        }
+    }
 }
