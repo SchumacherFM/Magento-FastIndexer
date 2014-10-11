@@ -391,7 +391,11 @@
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
             </general>
             <indexer>
+                <lock_model/>
                 <lock_threshold>1800</lock_threshold>
+                <enable_cron_index>1</enable_cron_index>
+                <scheduler_cron_expr>*/5 * * * *</scheduler_cron_expr>
+                <max_events_before_full_reindex>5</max_events_before_full_reindex>
             </indexer>
             <url_indexer>
                 <urlRewriteCopyCustom>0</urlRewriteCopyCustom>
@@ -453,4 +457,21 @@
             </process_collection_load_before>
         </events>
     </adminhtml>
+    <crontab>
+        <jobs>
+            <schumacherfm_fastindexer_cron>
+                <run>
+                    <model>schumacherfm_fastindexer/cron::execLastQueuedIndexer</model>
+                </run>
+            </schumacherfm_fastindexer_cron>
+            <schumacherfm_fastindexer_events_cron>
+                <schedule>
+                    <config_path>fastindexer/indexer/scheduler_cron_expr</config_path>
+                </schedule>
+                <run>
+                    <model>schumacherfm_fastindexer/cron::unprocessed_events_index</model>
+                </run>
+            </schumacherfm_fastindexer_events_cron>
+        </jobs>
+    </crontab>
 </config>

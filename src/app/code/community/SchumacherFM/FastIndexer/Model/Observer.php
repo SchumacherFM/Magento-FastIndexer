@@ -61,33 +61,33 @@ class SchumacherFM_FastIndexer_Model_Observer
         $block
             ->removeColumn('action')
             ->addColumn('event_count', array(
-                    'header'   => Mage::helper('index')->__('Event Count'),
+                    'header'   => $this->getHelper()->__('Event Count'),
                     'width'    => '80',
                     'index'    => 'event_count',
                     'sortable' => false
                 )
             )
             ->addColumn('action', array(
-                    'header'    => Mage::helper('index')->__('Action'),
+                    'header'    => $this->getHelper()->__('Action'),
                     'width'     => '100',
                     'type'      => 'action',
                     'getter'    => 'getId',
                     'actions'   => array(
                         array(
-                            'caption' => Mage::helper('index')->__('Reindex Data'),
+                            'caption' => $this->getHelper()->__('Reindex Data (Blocking)'),
                             'url'     => array('base' => '*/*/reindexProcess'),
                             'field'   => 'process'
                         ),
                         array(
-                            'caption' => Mage::helper('index')->__('Schedule Reindex'),
+                            'caption' => $this->getHelper()->__('Schedule Reindex (Non-Blocking)'),
                             'url'     => array('base' => '*/fastindexer/scheduleReindex'),
-                            'params'  => array('_current' => true, '_secure' => false),
+                            'params'  => array('_current' => true),
                             'field'   => 'process'
                         ),
                         array(
-                            'caption' => Mage::helper('index')->__('Schedule partial index'),
+                            'caption' => $this->getHelper()->__('Schedule partial index (Non-Blocking)'),
                             'url'     => array('base' => '*/fastindexer/schedulePartial'),
-                            'params'  => array('_current' => true, '_secure' => false),
+                            'params'  => array('_current' => true),
                             'field'   => 'process'
                         ),
                     ),
