@@ -2,7 +2,7 @@
     "name": "schumacherfm/fastindexer",
     "license": "OSL-3.0",
     "type": "magento-module",
-    "description": "Makes indexing of your Magento store around x% faster!",
+    "description": "Speeds up indexing of your Magento store.",
     "homepage": "https://github.com/schumacherfm",
     "require": {
         "magento-hackathon/magento-composer-installer": "*"
@@ -10,8 +10,7 @@
     "authors": [
         {
             "name": "Cyrill Schumacher",
-            "email": "firstName@lastName.fm"
+            "email": "cyrill@schumacher.fm"
         }
     ]
-
 }
