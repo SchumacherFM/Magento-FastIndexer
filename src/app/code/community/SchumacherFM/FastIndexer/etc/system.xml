@@ -103,6 +103,11 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
+                            <!--Why are the characters for the DB name limited? Because of-->
+                            <!--Mage_Catalog_Model_Resource_Product_Indexer_Eav_Abstract::_removeNotVisibleEntityFromIndex()-->
+                            <!--This method does NOT quote the database name! :-(-->
+                            <comment>Allowed characters: a-z and 0-9</comment>
+                            <validate>validate-alphanum</validate>
                             <depends>
                                 <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
                                 <is_active>
@@ -119,7 +124,9 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment>Name must be different from Shadow Database 1.</comment>
+                            <validate>validate-alphanum</validate>
+                            <comment>Name must be different from Shadow Database 1. Allowed characters: a-z and
+                                0-9</comment>
                             <depends>
                                 <!--@see Mage_Adminhtml_Block_System_Config_Form::initFields-->
                                 <is_active>
