@@ -1,7 +1,7 @@
-FastIndexer WIP
+FastIndexer
 ===========
 
-WIP = Work in Progress
+### This module has never been used in production.
 
 No more empty results in the frontend due to a long taking reindex process!
 
@@ -250,12 +250,10 @@ Support / Contribution
 
 Report a bug using the issue tracker.
 
-Clients with in-depth Magento knowledge can have access to the private git repository. Contribution guidelines will follow.
-
 Licence
 -------
 
-Proprietary
+[Apache License 2.0](https://tldrlegal.com/license/apache-license-2.0-%28apache-2.0%29)
 
 Author
 ------
